@@ -16,7 +16,7 @@
     <string name="button_scan">Scan for devices</string>
     <string name="menu_about">About</string>
     <string name="menu_connect">Connect</string>
-    <string name="cv_seekBar_100">100%</string>
+    <string name="cv_seekBar_100">Brightness 70%</string>
     <string name="bt_not_enabled_leaving">Bluetooth was not enabled. Leaving App.</string>
     <string name="btn_OFF">OFF</string>
     <string name="btn_ON">ON</string>

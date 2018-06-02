@@ -1,5 +1,7 @@
 package valentin8dev.by.RGBStripControlArduino;
 
+import android.util.Log;
+
 class InputRecognition {
 
     private static final String TAG = "InputRecognition";
@@ -62,6 +64,7 @@ class InputRecognition {
 
     static void setDate_came(boolean date_came) {
         InputRecognition.date_came = date_came;
+        Log.d(TAG, "date_came " + date_came);
     }
 
     static boolean isDate_came() {

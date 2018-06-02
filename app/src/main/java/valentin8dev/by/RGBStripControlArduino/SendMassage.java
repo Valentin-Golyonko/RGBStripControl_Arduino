@@ -55,7 +55,7 @@ class SendMassage {
 
             }
         } catch (IOException e) {
-            Log.d(TAG, e.getMessage());
+            Log.e(TAG, "send outputStream", e);
         }
     }
 
@@ -87,7 +87,7 @@ class SendMassage {
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e(TAG, "setRGBLight outputStream", e);
             }
         }
     }

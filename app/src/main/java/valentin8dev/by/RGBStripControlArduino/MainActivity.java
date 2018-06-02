@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -35,7 +36,6 @@ public class MainActivity extends AppCompatActivity {
     private SeekBar sSeekBar;
     private int[] rgbColor;
     private ColorPickerView mColorPickerView;
-    private LinearLayout llColorPicker;
     private AppCompatButton btn_on, btn_off;
     private TextView tv_sb;
     public Toolbar toolbar;
@@ -46,19 +46,21 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
+        // Get local Bluetooth adapter
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        // If the adapter is null, then Bluetooth is not supported
+        if (mBluetoothAdapter == null) {
+            Toast.makeText(this,
+                    "Bluetooth is not available", Toast.LENGTH_LONG).show();
+            this.finish();
+        }
+
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        /*FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });*/
-
         mColorPickerView = findViewById(R.id.colorPickerView);
+        mColorPickerView.selectCenter();
         mColorPickerView.setColorListener(new ColorListener() {
             @Override
             public void onColorSelected(int color) {
@@ -66,9 +68,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        llColorPicker = findViewById(R.id.colorPickerLl);
-
         tv_sb = findViewById(R.id.seek_bar_progress);
+        tv_sb.setText(MessageFormat
+                .format("Brightness {0} %", String.valueOf(getBrightness())));
 
         sSeekBar = findViewById(R.id.seekBar_rgb);
         sSeekBar.setProgress((int) getBrightness());
@@ -78,7 +80,8 @@ public class MainActivity extends AppCompatActivity {
                 sSeekBar = seekBar;
                 setBrightness(progress);
 
-                tv_sb.setText(String.valueOf(progress));
+                tv_sb.setText(MessageFormat
+                        .format("Brightness {0} %", String.valueOf(progress)));
                 SendMassage.setRGBLight(rgbColor, getBrightness());
             }
 
@@ -93,23 +96,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Get local Bluetooth adapter
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
-        // If the adapter is null, then Bluetooth is not supported
-        if (mBluetoothAdapter == null) {
-            Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
-            this.finish();
-        }
-
         btn_on = findViewById(R.id.rgb_btn_ON);
         btn_on.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 SendMassage.send(2, true);
                 SendMassage.setRGBLight(rgbColor, getBrightness());
-                btn_on.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-                btn_off.setBackgroundColor(Color.WHITE);
+                setBtnColor(1);
             }
         });
 
@@ -118,8 +111,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 SendMassage.send(2, false);
-                btn_off.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-                btn_on.setBackgroundColor(Color.WHITE);
+                setBtnColor(0);
             }
         });
 
@@ -136,7 +128,8 @@ public class MainActivity extends AppCompatActivity {
             // Otherwise, setup the chat session
         } else if (mBluetoothService == null) {
             // Initialize the BluetoothService to perform bluetooth connections
-            mBluetoothService = new BluetoothService(new WeakReferenceHandler(MainActivity.this));
+            mBluetoothService = new BluetoothService(
+                    new WeakReferenceHandler(MainActivity.this));
         }
     }
 
@@ -154,6 +147,8 @@ public class MainActivity extends AppCompatActivity {
                 mBluetoothService.start();
             }
         }
+
+        updateUI();
     }
 
     @Override
@@ -167,14 +162,15 @@ public class MainActivity extends AppCompatActivity {
 
     private void setRGBColor(int color) {
 
-        TextView textView = findViewById(R.id.colorPickerTv);
         String rgbColorHtml = mColorPickerView.getColorHtml();
-        textView.setText(MessageFormat.format("#{0}", rgbColorHtml));
 
-        llColorPicker.setBackgroundColor(color);
+        TextView tv_representColor = findViewById(R.id.colorPickerTv);
+        tv_representColor.setText(MessageFormat.format("#{0}", rgbColorHtml));
+        tv_representColor.setBackgroundColor(color);
 
         rgbColor = mColorPickerView.getColorRGB();
 
+        SendMassage.send(2, true);
         SendMassage.setRGBLight(rgbColor, getBrightness());
     }
 
@@ -185,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
                 if (resultCode == Activity.RESULT_OK) {
                     connectDevice(data);
                 } else {
-                    toolbar.getMenu().getItem(R.id.menu_connectToBlt)
+                    toolbar.getMenu().getItem(0)
                             .setIcon(R.drawable.ic_bluetooth_disabled_black_24dp);
                 }
                 break;
@@ -194,7 +190,8 @@ public class MainActivity extends AppCompatActivity {
                 if (resultCode == Activity.RESULT_OK) {
                     // Bluetooth is now enabled, so set up a session
                     // Initialize the BluetoothService to perform bluetooth connections
-                    mBluetoothService = new BluetoothService(new WeakReferenceHandler(MainActivity.this));
+                    mBluetoothService = new BluetoothService(
+                            new WeakReferenceHandler(MainActivity.this));
                 } else {
                     // User did not enable Bluetooth or an error occurred
                     Toast.makeText(this, R.string.bt_not_enabled_leaving,
@@ -251,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
         switch (id) {
             case R.id.menu_connectToBlt:
                 if (mBluetoothService != null) {
-                    if (mBluetoothService.getState() == Constants.STATE_NONE) {
+                    if (mBluetoothService.getState() != Constants.STATE_CONNECTED) {
                         openDeviceList();
                     } else {
                         mBluetoothService.stop();
@@ -281,12 +278,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void updateUI(){
+        //Log.d(TAG, "updateUI()");
 
         if (InputRecognition.rgbLight.equals("0")) {
-            btn_on.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-            btn_off.setBackgroundColor(Color.WHITE);
+            setBtnColor(1);
         } else if (InputRecognition.rgbLight.equals("1")) {
-            btn_on.setBackgroundColor(Color.WHITE);
+            setBtnColor(0);
         }
     }
 
@@ -296,5 +293,16 @@ public class MainActivity extends AppCompatActivity {
 
     public void setBrightness(float brightness) {
         this.brightness = brightness;
+    }
+
+    void setBtnColor(int state){
+
+        if (state == 1) {
+            btn_on.setBackgroundColor(getResources().getColor(R.color.colorAccent));
+            btn_off.setBackgroundColor(getResources().getColor(R.color.colorTextIcons));
+        } else if (state == 0) {
+            btn_on.setBackgroundColor(getResources().getColor(R.color.colorTextIcons));
+            btn_off.setBackgroundColor(getResources().getColor(R.color.colorAccent));
+        }
     }
 }

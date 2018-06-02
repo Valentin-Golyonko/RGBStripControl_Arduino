@@ -55,9 +55,9 @@ class BluetoothService {
     }
 
     // Update UI title according to the current state of the chat connection
-    private synchronized void updateUI() {
+    private synchronized void updateState() {
         state = getState();
-        //Log.d(TAG, "updateUI() " + newState + " -> " + state);
+        //Log.d(TAG, "updateState() " + newState + " -> " + state);
         newState = state;
 
         // Give the new state to the Handler so the UI Activity can update
@@ -96,7 +96,7 @@ class BluetoothService {
             secureAcceptThread.start();
         }
         // Update UI title
-        updateUI();
+        updateState();
     }
 
     /**
@@ -123,14 +123,14 @@ class BluetoothService {
         connectThread = new ConnectThread(device);
         connectThread.start();
         // Update UI title
-        updateUI();
+        updateState();
     }
 
     /**
      * Start the ConnectedThread to begin managing a Bluetooth connection
      */
     private synchronized void connected(BluetoothSocket socket, BluetoothDevice device) {
-        //Log.d(TAG, "connected, Socket Type:" + socketType);
+        //Log.d(TAG, "connected");
 
         // Cancel the thread that completed the connection
         if (connectThread != null) {
@@ -161,7 +161,7 @@ class BluetoothService {
         msg.setData(bundle);
         mHandler.sendMessage(msg);
         // Update UI title
-        updateUI();
+        updateState();
     }
 
     /**
@@ -190,7 +190,7 @@ class BluetoothService {
 
         state = Constants.STATE_NONE;
         // Update UI title
-        updateUI();
+        updateState();
     }
 
     /**
@@ -221,7 +221,7 @@ class BluetoothService {
 
         state = Constants.STATE_NONE;
         // Update UI title
-        updateUI();
+        updateState();
 
         // Start the service over to restart listening mode
         BluetoothService.this.start();
@@ -240,7 +240,7 @@ class BluetoothService {
 
         state = Constants.STATE_NONE;
         // Update UI title
-        updateUI();
+        updateState();
 
         // Start the service over to restart listening mode
         BluetoothService.this.start();
@@ -264,12 +264,12 @@ class BluetoothService {
                         MY_UUID_SECURE);
 
             } catch (IOException e) {
-                Log.e(TAG, "listen() failed", e);
+                //Log.e(TAG, "listen() failed", e);
             }
             mmServerSocket = tmp;
             state = Constants.STATE_LISTEN;
 
-            //Log.e(TAG, "AcceptThread");
+            //Log.d(TAG, "AcceptThread");
         }
 
         public void run() {
@@ -289,6 +289,7 @@ class BluetoothService {
 
                 // If a connection was accepted
                 if (socket != null) {
+                    Log.e(TAG, "socket != null");
                     synchronized (BluetoothService.this) {
                         switch (state) {
                             case Constants.STATE_LISTEN:
@@ -309,11 +310,11 @@ class BluetoothService {
                     }
                 }
             }
-            //Log.i(TAG, "END mAcceptThread, socket Type: " + mSocketType);
+            //Log.i(TAG, "END mAcceptThread");
         }
 
         void cancel() {
-            //Log.d(TAG, "Socket Type" + mSocketType + "cancel " + this);
+            //Log.d(TAG, "cancel " + this);
             try {
                 mmServerSocket.close();
             } catch (IOException e) {
@@ -395,7 +396,7 @@ class BluetoothService {
         private final OutputStream mmOutStream;
 
         ConnectedThread(BluetoothSocket socket) {
-            //Log.d(TAG, "create ConnectedThread: " + socketType);
+            //Log.d(TAG, "create ConnectedThread");
             bltSocket = socket;
             InputStream tmpIn = null;
             OutputStream tmpOut = null;
@@ -414,7 +415,7 @@ class BluetoothService {
         }
 
         public void run() {
-            //Log.i(TAG, "BEGIN connectedThread");
+            //Log.d(TAG, "BEGIN connectedThread");
             byte[] buffer = new byte[64];
             int bytes;
 
