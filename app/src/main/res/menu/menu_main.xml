@@ -1,0 +1,27 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="valentin8dev.by.RGBStripControlArduino.MainActivity">
+
+    <item
+        android:id="@+id/menu_connectToBlt"
+        android:icon="@drawable/ic_bluetooth_disabled_black_24dp"
+        android:title="@string/menu_connect"
+        app:showAsAction="ifRoom"
+        tools:ignore="AppCompatResource" />
+
+    <item
+        android:id="@+id/menu_settings"
+        android:icon="@drawable/ic_settings_black_24dp"
+        android:orderInCategory="100"
+        android:title="@string/action_settings"
+        app:showAsAction="ifRoom"
+        tools:ignore="AppCompatResource" />
+
+    <item
+        android:id="@+id/menu_about"
+        android:icon="@drawable/ic_info_outline_black_24dp"
+        android:title="@string/menu_about"
+        app:showAsAction="ifRoom"
+        tools:ignore="AppCompatResource" />
+</menu>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="300dp"
+    android:layout_height="100dp"
+    android:gravity="center_horizontal"
+    android:layout_gravity="center|top">
+
+    <TextView
+        android:id="@+id/tv_menu_hello"
+        style="@style/my"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:autoLink="web"
+        android:gravity="center_horizontal"
+        android:text="@string/github_page"/>
+
+</LinearLayout>
