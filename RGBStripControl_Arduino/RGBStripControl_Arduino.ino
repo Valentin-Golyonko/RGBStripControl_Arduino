@@ -14,9 +14,10 @@ int relayPin = 12;
 bool light_always = false;
 
 int pirInputPin = 5;  // choose the input pin (for PIR sensor)
+//READ: please change PIR sensor Pin number to 4 (I could not solder it) :(
 int pir = LOW;        // we start, assuming no motion detected
 
-int r_in = 100, g_in = 100, b_in = 100; // RGB default 
+int r_in = 100, g_in = 100, b_in = 100; // RGB default
 bool done = false; // flag for recieve all 3 colors
 
 long previousMillis_1 = 0; // will store last time when status was updated
@@ -76,7 +77,7 @@ void loop() {
         RGBStrip(r_in, g_in, b_in);
         done = false;
       }
-    } else if(!light_always){
+    } else if (!light_always) {
       // update PIR sensor status
       PIR(p);
     }
@@ -111,7 +112,7 @@ void ListenBlt() {
                 (long)(unsigned char)(ch_data[1]) << 16 |
                 (int)(unsigned char)(ch_data[2]) << 8 |
                 (int)(unsigned char)(ch_data[3]);
-                
+
         // Serial.println(a, DEC);
         GetCommand(a);
         count = 0;
@@ -185,7 +186,7 @@ void Transmit(int p, int r) {
 void PIR(int val) {
   if (val == HIGH) {  // check if the input is HIGH
     digitalWrite(relayPin, LOW);  // turn LED ON
-    RGBStrip(100, 100, 100);
+    RGBStrip(125, 125, 125);
     if (pir == LOW) {
       // Serial.println("Motion detected!");
       pir = HIGH;
@@ -207,4 +208,3 @@ void RGBStrip(int r, int g, int b) {
   analogWrite(BLUEPIN , b);
   // Serial.println("RGB: " + (String)r + "." + (String)g + "." + (String)b);
 }
-

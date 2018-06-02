@@ -4,16 +4,13 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -69,8 +66,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         tv_sb = findViewById(R.id.seek_bar_progress);
-        tv_sb.setText(MessageFormat
-                .format("Brightness {0} %", String.valueOf(getBrightness())));
+        setBrightnessText(getBrightness());
 
         sSeekBar = findViewById(R.id.seekBar_rgb);
         sSeekBar.setProgress((int) getBrightness());
@@ -80,8 +76,7 @@ public class MainActivity extends AppCompatActivity {
                 sSeekBar = seekBar;
                 setBrightness(progress);
 
-                tv_sb.setText(MessageFormat
-                        .format("Brightness {0} %", String.valueOf(progress)));
+                setBrightnessText(progress);
                 SendMassage.setRGBLight(rgbColor, getBrightness());
             }
 
@@ -208,7 +203,7 @@ public class MainActivity extends AppCompatActivity {
                     ArrayList<String> result = data
                             .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     String speech_recognition_text = result.get(0);
-                    voiceToTxtOutput.setText(speech_recognition_text);
+                    voiceToTxtOutput.setBrightnessText(speech_recognition_text);
                     //Log.d(TAG, speech_recognition_text);
 
                     TextToInt.TextRecognition(speech_recognition_text);
@@ -287,15 +282,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public float getBrightness() {
+    private float getBrightness() {
         return brightness;
     }
 
-    public void setBrightness(float brightness) {
+    private void setBrightness(float brightness) {
         this.brightness = brightness;
     }
 
-    void setBtnColor(int state){
+    private void setBtnColor(int state){
 
         if (state == 1) {
             btn_on.setBackgroundColor(getResources().getColor(R.color.colorAccent));
@@ -304,5 +299,10 @@ public class MainActivity extends AppCompatActivity {
             btn_on.setBackgroundColor(getResources().getColor(R.color.colorTextIcons));
             btn_off.setBackgroundColor(getResources().getColor(R.color.colorAccent));
         }
+    }
+
+    private void setBrightnessText(float f) {
+        tv_sb.setText(MessageFormat
+                .format("Brightness {0} %", String.valueOf(f)));
     }
 }

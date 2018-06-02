@@ -9,8 +9,6 @@ class InputRecognition {
     static String pirSensor = "--", rgbLight = "--";
     private static int l = -1, w = -1, p = -1, u = -1;
 
-    private static boolean date_came = false;
-
     /**
      * resolve input string 'in' to data (int) and parse it to the Activity (view elements)
      * <p>
@@ -22,8 +20,6 @@ class InputRecognition {
 
         if (input != null) {
             //Log.d(TAG, "input " + input);
-
-            setDate_came(true);
 
             int input_length = input.length();
 
@@ -42,8 +38,6 @@ class InputRecognition {
             pirSensor = parameter(input, p, u);
             p = u = -1;
         }
-
-        setDate_came(false);
     }
 
     private static String parameter(String in, int from, int to) {
@@ -60,14 +54,5 @@ class InputRecognition {
             }
         }
         return "-1";
-    }
-
-    static void setDate_came(boolean date_came) {
-        InputRecognition.date_came = date_came;
-        Log.d(TAG, "date_came " + date_came);
-    }
-
-    static boolean isDate_came() {
-        return date_came;
     }
 }

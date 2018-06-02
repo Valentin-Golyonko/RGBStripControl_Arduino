@@ -171,7 +171,6 @@ class BluetoothService {
         //Log.d(TAG, "stop");
 
         write();
-        InputRecognition.setDate_came(false);
 
         if (connectThread != null) {
             connectThread.cancel();
