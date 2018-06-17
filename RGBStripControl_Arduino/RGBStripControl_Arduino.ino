@@ -6,78 +6,72 @@
 
 #include "functions.h"
 
-#define BlueLedPin 8  // power indicator
-#define REDPIN 10     // RGB Strip pins
-#define GREENPIN 11
-#define BLUEPIN 9
-
 long previousMillis_1 = 0; // will store last time when status was updated
 long previousMillis_2 = 0;
 long previousMillis_3 = 0;
 
 void setup() {
 
-  // declare digital pins
-  pinMode(relayPin, OUTPUT);
-  digitalWrite(relayPin , 1); // turn OFF relay !!!
-  // it depends on connection to relay - green led mast be OFF
-  // in that case relay is OFF -> no power consuming
-  pinMode(pirInputPin, INPUT);  // declare rip-sensor as input
-  digitalWrite(pirInputPin , 0);
-  pinMode(REDPIN, OUTPUT);
-  pinMode(GREENPIN, OUTPUT);
-  pinMode(BLUEPIN, OUTPUT);
-  pinMode(BlueLedPin, OUTPUT); // Blue Led
-  digitalWrite(BlueLedPin, 1);
+    // declare digital pins
+    pinMode(ptr->relayPin, OUTPUT);
+    digitalWrite(ptr->relayPin , 1); // turn OFF relay !!!
+    // it depends on connection to relay - green led mast be OFF
+    // in that case relay is OFF -> no power consuming
+    pinMode(ptr->pirInputPin, INPUT);  // declare rip-sensor as input
+    digitalWrite(ptr->pirInputPin , 0);
+    pinMode(ptr->REDPIN, OUTPUT);
+    pinMode(ptr->GREENPIN, OUTPUT);
+    pinMode(ptr->BLUEPIN, OUTPUT);
+    pinMode(ptr->BlueLedPin, OUTPUT); // Blue Led
+    digitalWrite(ptr->BlueLedPin, 1);
 
-  // UART speed
-  // Serial.begin(9600);
-  SerialBLE.begin(9600);
+    // UART speed
+    // Serial.begin(9600);
+    SerialBLE.begin(9600);
 }
 
 void loop() {
 
-  // if the data came from SerialBLE
-  ListenBlt();
+    // if the data came from SerialBLE
+    ListenBlt();
 
-  unsigned long currentMillis = millis();
+    unsigned long currentMillis = millis();
 
-  if (currentMillis - previousMillis_1 >= period) { // period from android app
-    previousMillis_1 = currentMillis;
+    if (currentMillis - previousMillis_1 >= ptr->period) { // period from android app
+        previousMillis_1 = currentMillis;
 
-    if (blt) {
-      // transmite date to android app over bluetooth
-      Transmit(p, r);
+        if (ptr->blt) {
+            // transmite date to android app over bluetooth
+            Transmit(ptr->pirStatus, ptr->relayStatus);
+        }
     }
-  }
 
-  if (currentMillis - previousMillis_2 >= 1000) { // timer = 1sec
-    previousMillis_2 = currentMillis;
+    if (currentMillis - previousMillis_2 >= 1000) { // timer = 1sec
+        previousMillis_2 = currentMillis;
 
-    // update sensors status
-    PinStatus();
+        // update sensors status
+        PinStatus();
 
-    // set the color in Rgb Strip
-    if (light_always) {
-      if (done) {
-        RGBStrip(r_in, g_in, b_in);
-        done = false;
-      }
-    } else if (!light_always) {
-      // update PIR sensor status
-      PIR(p);
+        // set the color in Rgb Strip
+        if (ptr->light_always) {
+            if (ptr->done) {
+                RGBStrip(ptr->r_in, ptr->g_in, ptr->b_in);
+                sP.done = false;
+            }
+        } else if (!ptr->light_always) {
+            // update PIR sensor status
+            PIR(ptr->pirStatus);
+        }
     }
-  }
 
-  // if no motion detected in last 30s -> turn LED OFF
-  if (currentMillis - previousMillis_3 >= 30000) { // timer = 30sec
-    previousMillis_3 = currentMillis;
-    if (!light_always) {
-      if (pir == 0) {
-        RGBStrip(0, 0, 0);    // rgb off
-        digitalWrite(relayPin, 1);  // turn LED OFF
-      }
+    // if no motion detected in last 30s -> turn LED OFF
+    if (currentMillis - previousMillis_3 >= 30000) { // timer = 30sec
+        previousMillis_3 = currentMillis;
+        if (!ptr->light_always) {
+            if (ptr->pirStatus == 0) {
+                RGBStrip(0, 0, 0);    // rgb off
+                digitalWrite(ptr->relayPin, 1);  // turn LED OFF
+            }
+        }
     }
-  }
 }
-
