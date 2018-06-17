@@ -1,48 +1,34 @@
 // Made by https://github.com/Valentin-Golyonko. Apache License 2.0.
 // DIY: Arduino (nano v3) RGB Strip controller with bluetooth connection to android app.
 
-#include <SoftwareSerial.h>
+// Sketch uses 5594 bytes (18%) of program storage space. Maximum is 30720 bytes.
+// Global variables use 183 bytes (8%) of dynamic memory, leaving 1865 bytes for local variables. Maximum is 2048 bytes.
+
+#include "functions.h"
 
 #define BlueLedPin 8  // power indicator
 #define REDPIN 10     // RGB Strip pins
 #define GREENPIN 11
 #define BLUEPIN 9
 
-SoftwareSerial SerialBLE(7, 6); // RX,TX on arduino board
-
-int relayPin = 12;
-bool light_always = false;
-
-int pirInputPin = 5;  // choose the input pin (for PIR sensor)
-//READ: please change PIR sensor Pin number to 4 (I could not solder it) :(
-int pir = LOW;        // we start, assuming no motion detected
-
-int r_in = 100, g_in = 100, b_in = 100; // RGB default
-bool done = false; // flag for recieve all 3 colors
-
 long previousMillis_1 = 0; // will store last time when status was updated
 long previousMillis_2 = 0;
 long previousMillis_3 = 0;
-int period = 5000;
-
-int r = -1, p = -1; // pin status
-bool blt = false; // BLT trancieve ON/OFF
-char ch_data[4]; // store incoming date from BLT
 
 void setup() {
 
   // declare digital pins
   pinMode(relayPin, OUTPUT);
-  digitalWrite(relayPin , HIGH); // turn OFF relay !!!
+  digitalWrite(relayPin , 1); // turn OFF relay !!!
   // it depends on connection to relay - green led mast be OFF
   // in that case relay is OFF -> no power consuming
   pinMode(pirInputPin, INPUT);  // declare rip-sensor as input
-  digitalWrite(pirInputPin , LOW);
+  digitalWrite(pirInputPin , 0);
   pinMode(REDPIN, OUTPUT);
   pinMode(GREENPIN, OUTPUT);
   pinMode(BLUEPIN, OUTPUT);
   pinMode(BlueLedPin, OUTPUT); // Blue Led
-  digitalWrite(BlueLedPin, HIGH);
+  digitalWrite(BlueLedPin, 1);
 
   // UART speed
   // Serial.begin(9600);
@@ -87,124 +73,11 @@ void loop() {
   if (currentMillis - previousMillis_3 >= 30000) { // timer = 30sec
     previousMillis_3 = currentMillis;
     if (!light_always) {
-      if (pir == LOW) {
+      if (pir == 0) {
         RGBStrip(0, 0, 0);    // rgb off
-        digitalWrite(relayPin, HIGH);  // turn LED OFF
+        digitalWrite(relayPin, 1);  // turn LED OFF
       }
     }
   }
 }
 
-void ListenBlt() {
-  if (SerialBLE.available() > 0) {
-    int count = 0;
-    for (int i = 0; i < 4; i++) {
-      // read input bytes
-      ch_data[i] = SerialBLE.read();
-      delay(10);    // magic! for stable receiving
-      // Serial.println("-----------");
-      // Serial.println(ch_data[i], DEC);
-      count++;
-      // i use only 2 bytes (2^16-1), ex-pl:  0010 0011 1101 1100  = 9180 (int)
-      if (count == 4) {
-        // convert byte to int ;  may be,  int i = atoi(intBuffer) ?
-        int a = (long)(unsigned char)(ch_data[0]) << 24 |
-                (long)(unsigned char)(ch_data[1]) << 16 |
-                (int)(unsigned char)(ch_data[2]) << 8 |
-                (int)(unsigned char)(ch_data[3]);
-
-        // Serial.println(a, DEC);
-        GetCommand(a);
-        count = 0;
-      }
-    }
-  }
-}
-
-void GetCommand(int in) {
-  // We obtain the pin number by integer division (we find 1 number == pin)
-  // and the action we need by obtaining the remainder of the division by 1000.
-  switch (in / 1000) {
-    case 1: // start data transfer
-      Transmit(p, r);
-      blt = true;
-      period = (in % 1000) * 1000;  // in % 1000 = 5 -> 5sec = 5000ms
-      // Serial.println(blt);
-      // Serial.println(period);
-      break;
-    case 2: // stop transmition date
-      blt = false;
-      // Serial.println(blt);
-      break;
-    case 3:
-      // 3002 <= in <= 3000, relayPin + ON always / OFF
-      switch (in % 1000) {
-        case 2:
-          digitalWrite(relayPin , LOW); // coz in LOW Consumed current is less (~66mA)
-          light_always = true;
-          RGBStrip(r_in, g_in, b_in);
-          break;
-        case 0:
-          RGBStrip(0, 0, 0);
-          digitalWrite(relayPin , HIGH); // Consumed current ~130mA
-          light_always = false;
-          break;
-      }
-      break;
-    case 10:  // 10xxx - red pin 10 to value xxx
-      r_in = in % 1000;
-      done = false; // continue reading \ read 2 more param.
-      break;
-    case 11:  // 11xxx - green pin 11 to value xxx
-      g_in = in % 1000;
-      done = false;
-      break;
-    case 13:  // 13 = code for blue pin 9, coz 90255 does't get in to 2 bytes :(
-      b_in = in % 1000;
-      done = true;  // allow to light ON RGBStrip
-      break;
-  }
-}
-
-void PinStatus() {
-  r = digitalRead(relayPin);  // relayState
-  p = digitalRead(pirInputPin); // pirState
-
-  //  Serial.println(
-  //    "p" + (String)p + "u" +
-  //    "l" + (String)r + "w" +
-  //    "E");
-}
-
-void Transmit(int p, int r) {
-  SerialBLE.println(
-    "p" + (String)p + "u" +
-    "l" + (String)r + "w" +
-    "E"); // end of the line
-}
-
-void PIR(int val) {
-  if (val == HIGH) {  // check if the input is HIGH
-    digitalWrite(relayPin, LOW);  // turn LED ON
-    RGBStrip(125, 125, 125);
-    if (pir == LOW) {
-      // Serial.println("Motion detected!");
-      pir = HIGH;
-    }
-  } else {
-    if (pir == HIGH) {
-      // Serial.println("Motion ended!");
-      pir = LOW;
-    }
-  }
-}
-
-void RGBStrip(int r, int g, int b) {
-  r_in = r; // save last state
-  g_in = g;
-  b_in = b;
-  analogWrite(REDPIN , r);
-  analogWrite(GREENPIN , g);
-  analogWrite(BLUEPIN , b);
-  // Serial.println("RGB: " + (String)r + "." + (String)g + "." + (String)b);
-}
