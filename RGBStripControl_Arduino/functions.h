@@ -95,7 +95,7 @@ void GetCommand(uint16_t in) {
 void ListenBlt() {
     if (SerialBLE.available() > 0) {
         uint8_t count = 0;
-        for (int i = 0; i < 4; i++) {
+        for (uint8_t i = 0; i < 4; i++) {
             // read input bytes
             sP.ch_data[i] = SerialBLE.read();
             delay(10);    // magic! for stable receiving
@@ -128,7 +128,7 @@ void PinStatus() {
     //    "E");
 }
 
-void PIR(int val) {
+void PIR(uint8_t val) {
     if (val == 1) {  // check if the input is 1
         digitalWrite(sP.relayPin, 0);  // turn LED ON
         RGBStrip(ptr->r_in_def, ptr->g_in_def, ptr->b_in_def);

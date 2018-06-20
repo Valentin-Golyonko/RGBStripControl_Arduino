@@ -6,9 +6,9 @@
 
 #include "functions.h"
 
-long previousMillis_1 = 0; // will store last time when status was updated
-long previousMillis_2 = 0;
-long previousMillis_3 = 0;
+unsigned long previousMillis_1 = 0; // will store last time when status was updated
+unsigned long previousMillis_2 = 0;
+unsigned long previousMillis_3 = 0;
 
 uint16_t sensorTimer = 1000; // 1 sec
 uint16_t pirTimer = 30000; // 30 sec
