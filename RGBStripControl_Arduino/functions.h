@@ -1,4 +1,4 @@
-
+#include <stdint.h>
 #include <SoftwareSerial.h>
 
 struct pins {
@@ -23,8 +23,8 @@ struct pins {
     const uint8_t g_in_def = 125;
     const uint8_t b_in_def = 125;
     bool done = false;          // flag for receive all 3 colors
-    uint8_t relayStatus = 0;    // pin status
-    uint8_t pirStatus = 0;      // we start, assuming no motion detected
+    uint8_t relayStatus = 1;       // pin status (def-t = OFF)
+    uint8_t pirStatus = 0;          // we start, assuming no motion detected (def-t = OFF)
     bool blt = false;           // BLT transmission ON/OFF
     unsigned char ch_data[4];   // store incoming date from BLT
 };
@@ -41,10 +41,10 @@ void Transmit() {
             "E"); // end of the line
 }
 
-void RGBStrip(uint8_t *r, uint8_t *g, uint8_t *b) {
-    analogWrite(sP.REDPIN , ptr->r_in);
-    analogWrite(sP.GREENPIN , ptr->g_in);
-    analogWrite(sP.BLUEPIN , ptr->b_in);
+void RGBStrip(uint8_t r, uint8_t g, uint8_t b) {
+    analogWrite(sP.REDPIN , r);
+    analogWrite(sP.GREENPIN , g);
+    analogWrite(sP.BLUEPIN , b);
 }
 
 void GetCommand(uint16_t in) {
@@ -95,7 +95,7 @@ void GetCommand(uint16_t in) {
 void ListenBlt() {
     if (SerialBLE.available() > 0) {
         uint8_t count = 0;
-        for (uint8_t i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; i++) {
             // read input bytes
             sP.ch_data[i] = SerialBLE.read();
             delay(10);    // magic! for stable receiving
@@ -128,7 +128,7 @@ void PinStatus() {
     //    "E");
 }
 
-void PIR(uint8_t val) {
+void PIR(int val) {
     if (val == 1) {  // check if the input is 1
         digitalWrite(sP.relayPin, 0);  // turn LED ON
         RGBStrip(ptr->r_in_def, ptr->g_in_def, ptr->b_in_def);
