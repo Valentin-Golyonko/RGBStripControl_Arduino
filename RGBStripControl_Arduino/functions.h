@@ -1,32 +1,48 @@
 #include <stdint.h>
 #include <SoftwareSerial.h>
+#include <Wire.h>
+#include "RTClib.h"             // 1.781 mA
 
 struct pins {
-    const uint8_t BlueLedPin = 8;   // power indicator
+  const uint8_t BlueLedPin = 8;   // power indicator
 
-    const uint8_t REDPIN = 10;      // RGB Strip pins
-    const uint8_t GREENPIN = 11;
-    const uint8_t BLUEPIN = 9;
+  const uint8_t REDPIN = 10;      // RGB Strip pins
+  const uint8_t GREENPIN = 11;
+  const uint8_t BLUEPIN = 9;
 
-    const uint8_t RX = 7;           // BLE
-    const uint8_t TX = 6;
+  const uint8_t pinBuzzer = 3;
 
-    uint16_t period = 5000;
+  const uint8_t pinPhoto = A0;    // photoresistor and
+  uint16_t photo = 0;             // data from it
 
-    const uint8_t relayPin = 12;
-    const uint8_t pirInputPin = 5;  // choose the input pin (for PIR sensor)
-    bool light_always = false;
-    uint8_t r_in = 100;             // RGB default
-    uint8_t g_in = 100;
-    uint8_t b_in = 100;
-    const uint8_t r_in_def = 125;   // RGB default
-    const uint8_t g_in_def = 125;
-    const uint8_t b_in_def = 125;
-    bool done = false;          // flag for receive all 3 colors
-    uint8_t relayStatus = 1;       // pin status (def-t = OFF)
-    uint8_t pirStatus = 0;          // we start, assuming no motion detected (def-t = OFF)
-    bool blt = false;           // BLT transmission ON/OFF
-    unsigned char ch_data[4];   // store incoming date from BLT
+  const uint8_t RX = 7;           // BLE
+  const uint8_t TX = 6;
+
+  const uint8_t SDA = A4;         // I2C
+  const uint8_t SCL = A5;
+  uint8_t alarm_day = 15;         // alarm days default (1-5 = work days), code - 4015, 4017
+  uint8_t a_day[7] = {1, 1, 1, 1, 1, 0, 0};
+  uint16_t alarm_time = 630;      // code - 40630
+  bool alarm = false;
+  bool alarm_day_set = true;
+  bool autoBrightness = false;    // autoBrightness on/off
+
+  uint16_t period = 5000;
+
+  const uint8_t relayPin = 12;
+  const uint8_t pirInputPin = 5;  // choose the input pin (for PIR sensor)
+  bool light_always = false;
+  uint8_t r_in = 100;             // RGB default
+  uint8_t g_in = 100;
+  uint8_t b_in = 100;
+  const uint8_t r_in_def = 125;   // RGB default
+  const uint8_t g_in_def = 125;
+  const uint8_t b_in_def = 125;
+  bool done = false;          // flag for receive all 3 colors
+  uint8_t relayStatus = 1;       // pin status (def-t = OFF)
+  uint8_t pirStatus = 0;          // we start, assuming no motion detected (def-t = OFF)
+  bool blt = false;           // BLT transmission ON/OFF
+  unsigned char ch_data[4];   // store incoming date from BLT
 };
 
 struct pins sP;
@@ -34,110 +50,183 @@ struct pins *ptr = &sP;
 
 SoftwareSerial SerialBLE(sP.RX, sP.TX); // RX,TX on arduino board
 
+RTC_DS3231 rtc;
+
 void Transmit() {
-    SerialBLE.println(
-            "p" + (String)ptr->pirStatus + "u" +
-            "l" + (String)ptr->relayStatus + "w" +
-            "E"); // end of the line
+  SerialBLE.println(
+    "p" + (String)ptr->pirStatus + "u" +
+    "l" + (String)ptr->relayStatus + "w" +
+    "E"); // end of the line
 }
 
 void RGBStrip(uint8_t r, uint8_t g, uint8_t b) {
-    analogWrite(sP.REDPIN , r);
-    analogWrite(sP.GREENPIN , g);
-    analogWrite(sP.BLUEPIN , b);
+  float multiplaer;
+  if (ptr->autoBrightness) {
+    multiplaer = 1 - ((sP.photo + 1) / 1025);     // Max outer light -> min RGBStrip brightness
+  } else {
+    multiplaer = 1;
+  }
+  analogWrite(sP.REDPIN , r * multiplaer);
+  analogWrite(sP.GREENPIN , g * multiplaer);
+  analogWrite(sP.BLUEPIN , b * multiplaer);
+}
+
+void Buzzer() {
+  tone(ptr->pinBuzzer, 1000);   // Send 1KHz sound signal...
+  delay(100);                   // TODO: del
+  noTone(ptr->pinBuzzer);       // Stop sound...
+}
+
+void RTC() {
+  DateTime now = rtc.now();
+  int rtc_day = now.dayOfTheWeek();
+  int rtc_hour = now.hour();
+  int rtc_minute = now.minute();
+
+  if (ptr->alarm_day_set) {
+    if (sP.a_day[rtc_day] == 1) {
+      int alarm_time_h = ptr->alarm_time / 100; // 0620
+      int alarm_time_m = ptr->alarm_time % 100;
+      Serial.println(alarm_time_h);
+      Serial.println(alarm_time_m);
+      if (rtc_hour >= alarm_time_h) {
+        if (rtc_minute >= alarm_time_m) {
+          digitalWrite(sP.relayPin, 0);  // turn LED ON
+          RGBStrip(50, 205, 50);    // rgb on, limegreen
+          Buzzer();
+        }
+      }
+    }
+  }
+}
+void Alarm_Days(int d) {
+  switch (d) {
+    case 15:
+      for (int i = 0; i < 5; i++) {
+        sP.a_day[i] = 1;
+      }
+      break;
+    case 17:
+      for (int i = 0; i < 7; i++) {
+        sP.a_day[i] = 1;
+      }
+      break;
+  }
 }
 
 void GetCommand(uint16_t in) {
-    // We obtain the pin number by integer division (we find 1 number == pin)
-    // and the action we need by obtaining the remainder of the division by 1000.
-    switch (in / 1000) {
-        case 1: // start data transfer
-            Transmit();
-            sP.blt = true;
-            sP.period = (in % 1000) * 1000;  // in % 1000 = 5 -> 5sec = 5000ms
-            // Serial.println(blt);
-            // Serial.println(period);
-            break;
-        case 2: // stop transmition date
-            sP.blt = false;
-            // Serial.println(blt);
-            break;
-        case 3:
-            // 3002 <= in <= 3000, relayPin + ON always / OFF
-            switch (in % 1000) {
-                case 2:
-                    digitalWrite(sP.relayPin , 0); // coz in 0 Consumed current is less (~66mA)
-                    sP.light_always = true;
-                    RGBStrip(ptr->r_in, ptr->g_in, ptr->b_in);
-                    break;
-                case 0:
-                    RGBStrip(0, 0, 0);
-                    digitalWrite(sP.relayPin , 1); // Consumed current ~130mA
-                    sP.light_always = false;
-                    break;
-            }
-            break;
-        case 10:  // 10xxx - red pin 10 to value xxx
-            sP.r_in = in % 1000;
-            sP.done = false; // continue reading \ read 2 more param.
-            break;
-        case 11:  // 11xxx - green pin 11 to value xxx
-            sP.g_in = in % 1000;
-            sP.done = false;
-            break;
-        case 13:  // 13 = code for blue pin 9, coz 90255 does't get in to 2 bytes :(
-            sP.b_in = in % 1000;
-            sP.done = true;  // allow to light ON RGBStrip
-            break;
-    }
+  // We obtain the pin number by integer division (we find 1 number == pin)
+  // and the action we need by obtaining the remainder of the division by 1000.
+  switch (in / 1000) {
+    case 1: // start data transfer
+      Transmit();
+      sP.blt = true;
+      sP.period = (in % 1000) * 1000;  // in % 1000 = 5 -> 5sec = 5000ms
+      // Serial.println(blt);
+      // Serial.println(period);
+      break;
+    case 2: // stop transmition date
+      sP.blt = false;
+      // Serial.println(blt);
+      break;
+    case 3:
+      // 3002 <= in <= 3000, relayPin + ON always / OFF
+      switch (in % 1000) {
+        case 2:
+          digitalWrite(sP.relayPin , 0); // coz in 0 Consumed current is less (~66mA)
+          sP.light_always = true;
+          RGBStrip(ptr->r_in, ptr->g_in, ptr->b_in);
+          break;
+        case 0:
+          RGBStrip(0, 0, 0);
+          digitalWrite(sP.relayPin , 1); // Consumed current ~130mA
+          sP.light_always = false;
+          break;
+      }
+      break;
+    case 4:
+      // alarm days - 15 (1 - 5 = work days) or 17(1 - 7 = week) or ...
+      sP.alarm_day = in % 1000;
+      if (ptr->alarm_day > 0) {
+        sP.alarm_day_set = true;
+        Alarm_Days(ptr->alarm_day);
+      } else {
+        sP.alarm_day_set = false;
+      }
+    case 5:                           // autoBrightness on/off
+      if ((in % 1000) == 1) {
+        sP.autoBrightness = true;
+      } else if ((in % 1000) == 0) {
+        sP.autoBrightness = false;
+      }
+    case 10:  // 10xxx - red pin 10 to value xxx
+      sP.r_in = in % 1000;
+      sP.done = false; // continue reading \ read 2 more param.
+      break;
+    case 11:  // 11xxx - green pin 11 to value xxx
+      sP.g_in = in % 1000;
+      sP.done = false;
+      break;
+    case 13:  // 13 = code for blue pin 9, coz 90255 does't get in to 2 bytes :(
+      sP.b_in = in % 1000;
+      sP.done = true;  // allow to light ON RGBStrip
+      break;
+  }
+
+  if ((in / 10000) == 4) {
+    sP.alarm_time = in % 10000;
+    Serial.println(ptr->alarm_time);
+  }
 }
 
 void ListenBlt() {
-    if (SerialBLE.available() > 0) {
-        uint8_t count = 0;
-        for (uint8_t i = 0; i < 4; i++) {
-            // read input bytes
-            sP.ch_data[i] = SerialBLE.read();
-            delay(10);    // magic! for stable receiving
-            // Serial.println("-----------");
-            // Serial.println(ch_data[i], DEC);
-            count++;
-            // i use only 2 bytes (2^16-1), ex-pl:  0010 0011 1101 1100  = 9180 (int)
-            if (count == 4) {
-                // convert byte to int ;  may be,  int i = atoi(intBuffer) ?
-                long int a = (long)(unsigned char)(sP.ch_data[0]) << 24 |
-                             (long)(unsigned char)(sP.ch_data[1]) << 16 |
-                             (int)(unsigned char)(sP.ch_data[2]) << 8 |
-                             (int)(unsigned char)(sP.ch_data[3]);
+  if (SerialBLE.available() > 0) {
+    uint8_t count = 0;
+    for (uint8_t i = 0; i < 4; i++) {
+      // read input bytes
+      sP.ch_data[i] = SerialBLE.read();
+      delay(10);    // magic! for stable receiving
+      // Serial.println("-----------");
+      // Serial.println(ch_data[i], DEC);
+      count++;
+      // i use only 2 bytes (2^16-1), ex-pl:  0010 0011 1101 1100  = 9180 (int)
+      // 2 bytes MAX = 65535
+      if (count == 4) {
+        // convert byte to int ;  may be,  int i = atoi(intBuffer) ?
+        long int a = (long)(unsigned char)(sP.ch_data[0]) << 24 |
+                     (long)(unsigned char)(sP.ch_data[1]) << 16 |
+                     (int)(unsigned char)(sP.ch_data[2]) << 8 |
+                     (int)(unsigned char)(sP.ch_data[3]);
 
-                // Serial.println(a, DEC);
-                GetCommand(a);
-                count = 0;
-            }
-        }
+        // Serial.println(a, DEC);
+        GetCommand(a);
+        count = 0;
+      }
     }
+  }
 }
 
 void PinStatus() {
-    sP.relayStatus = digitalRead(ptr->relayPin);  // relayState
-    sP.pirStatus = digitalRead(ptr->pirInputPin); // pirState
+  sP.relayStatus = digitalRead(ptr->relayPin);  // relayState
+  sP.pirStatus = digitalRead(ptr->pirInputPin); // pirState
+  sP.photo = digitalRead(ptr->pinPhoto); // photoresistor
 
-    //  Serial.println(
-    //    "p" + (String)ptr->pirInputPin + "u" +
-    //    "l" + (String)ptr->relayPin + "w" +
-    //    "E");
+  //  Serial.println(
+  //    "p" + (String)ptr->pirInputPin + "u" +
+  //    "l" + (String)ptr->relayPin + "w" +
+  //    "E");
 }
 
 void PIR(uint8_t val) {
-    if (val == 1) {  // check if the input is 1
-        digitalWrite(sP.relayPin, 0);  // turn LED ON
-        RGBStrip(ptr->r_in_def, ptr->g_in_def, ptr->b_in_def);
-        if (ptr->pirStatus == 0) {
-            // Serial.println("Motion detected!");
-            sP.pirStatus = 1;
-        }
-    } else if (ptr->pirStatus == 1) {
-            // Serial.println("Motion ended!");
-            sP.pirStatus = 0;
+  if (val == 1) {  // check if the input is 1
+    digitalWrite(sP.relayPin, 0);  // turn LED ON
+    RGBStrip(ptr->r_in_def, ptr->g_in_def, ptr->b_in_def);
+    if (ptr->pirStatus == 0) {
+      // Serial.println("Motion detected!");
+      sP.pirStatus = 1;
     }
+  } else if (ptr->pirStatus == 1) {
+    // Serial.println("Motion ended!");
+    sP.pirStatus = 0;
+  }
 }
