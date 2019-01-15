@@ -28,7 +28,8 @@ void setup() {
   pinMode(ptr->BlueLedPin, OUTPUT); // Blue Led
   digitalWrite(ptr->BlueLedPin, 1);
   pinMode(ptr->pinBuzzer, OUTPUT);
-
+  pinMode(ptr->pinPhoto, INPUT);
+  
   rtc.begin();
 
   // UART speed
@@ -57,6 +58,8 @@ void loop() {
   if (currentMillis - previousMillis_2 >= sensorTimer) { // timer = 1sec
     previousMillis_2 = currentMillis;
 
+    RTC();
+    
     // update sensors status
     PinStatus();
 
@@ -82,6 +85,4 @@ void loop() {
       }
     }
   }
-
-  RTC();
 }

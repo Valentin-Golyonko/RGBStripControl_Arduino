@@ -11,6 +11,7 @@ struct pins {
   const uint8_t BLUEPIN = 9;
 
   const uint8_t pinBuzzer = 3;
+  bool alarm_on = false;
 
   const uint8_t pinPhoto = A0;    // photoresistor and
   uint16_t photo = 0;             // data from it
@@ -22,7 +23,7 @@ struct pins {
   const uint8_t SCL = A5;
   uint8_t alarm_day = 15;         // alarm days default (1-5 = work days), code - 4015, 4017
   uint8_t a_day[7] = {1, 1, 1, 1, 1, 0, 0};
-  uint16_t alarm_time = 630;      // code - 40630
+  uint16_t alarm_time = 2155;      // code - 40630
   bool alarm = false;
   bool alarm_day_set = true;
   bool autoBrightness = false;    // autoBrightness on/off
@@ -82,23 +83,34 @@ void RTC() {
   int rtc_day = now.dayOfTheWeek();
   int rtc_hour = now.hour();
   int rtc_minute = now.minute();
+  Serial.println("\tTime: " + String(rtc_day) + ":" + String(rtc_hour) + ":" + String(rtc_minute));
 
   if (ptr->alarm_day_set) {
     if (sP.a_day[rtc_day] == 1) {
       int alarm_time_h = ptr->alarm_time / 100; // 0620
       int alarm_time_m = ptr->alarm_time % 100;
-      Serial.println(alarm_time_h);
-      Serial.println(alarm_time_m);
-      if (rtc_hour >= alarm_time_h) {
+      if (rtc_hour == alarm_time_h) {
         if (rtc_minute >= alarm_time_m) {
-          digitalWrite(sP.relayPin, 0);  // turn LED ON
-          RGBStrip(50, 205, 50);    // rgb on, limegreen
-          Buzzer();
+          if (rtc_minute <= alarm_time_m + 2) {   // 3 min
+            Serial.println("ALARM ON");
+            Serial.println(alarm_time_h);
+            Serial.println(alarm_time_m);
+            digitalWrite(sP.relayPin, 0);  // turn LED ON
+            RGBStrip(50, 205, 50);    // rgb on, limegreen
+            Buzzer();
+            sP.alarm_on = true;
+          } else if (sP.alarm_on) {
+            Serial.println("ALARM OFF");
+            digitalWrite(sP.relayPin, 1);  // turn LED ON
+            RGBStrip(0, 0, 0);    // rgb on, limegreen
+            sP.alarm_on = false;
+          }
         }
       }
     }
   }
 }
+
 void Alarm_Days(int d) {
   switch (d) {
     case 15:
