@@ -1,10 +1,11 @@
 // Made by https://github.com/Valentin-Golyonko. Apache License 2.0.
 // DIY: Arduino (nano v3) RGB Strip controller with bluetooth connection to android app.
 
-// Sketch uses 10478 bytes (34%) of program storage space. Maximum is 30720 bytes.
-// Global variables use 616 bytes (30%) of dynamic memory, leaving 1432 bytes for local variables. Maximum is 2048 bytes.
+// Sketch uses 11144 bytes (36%) of program storage space. Maximum is 30720 bytes.
+// Global variables use 448 bytes (21%) of dynamic memory, leaving 1600 bytes for local variables. Maximum is 2048 bytes.
 
 #include "functions.h"
+#include "music.h"
 
 unsigned long previousMillis_1 = 0; // will store last time when status was updated
 unsigned long previousMillis_2 = 0;
@@ -29,17 +30,21 @@ void setup() {
   digitalWrite(ptr->BlueLedPin, 1);
   pinMode(ptr->pinBuzzer, OUTPUT);
   pinMode(ptr->pinPhoto, INPUT);
-  
+
   rtc.begin();
 
   // UART speed
-  Serial.begin(9600);
+  //Serial.begin(9600);
   SerialBLE.begin(9600);
 
   Buzzer();
 }
 
 void loop() {
+
+  if (ptr->alarm_on) {
+    play();
+  }
 
   // if the data came from SerialBLE
   ListenBlt();
@@ -59,7 +64,7 @@ void loop() {
     previousMillis_2 = currentMillis;
 
     RTC();
-    
+
     // update sensors status
     PinStatus();
 

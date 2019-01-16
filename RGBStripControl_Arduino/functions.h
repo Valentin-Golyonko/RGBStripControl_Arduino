@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <SoftwareSerial.h>
 #include <Wire.h>
-#include "RTClib.h"             // 1.781 mA
+#include "RTClib.h"               // 1.781 mA
 
 struct pins {
   const uint8_t BlueLedPin = 8;   // power indicator
@@ -12,6 +12,7 @@ struct pins {
 
   const uint8_t pinBuzzer = 3;
   bool alarm_on = false;
+  uint8_t alarm_duration = 2;
 
   const uint8_t pinPhoto = A0;    // photoresistor and
   uint16_t photo = 0;             // data from it
@@ -23,7 +24,7 @@ struct pins {
   const uint8_t SCL = A5;
   uint8_t alarm_day = 15;         // alarm days default (1-5 = work days), code - 4015, 4017
   uint8_t a_day[7] = {1, 1, 1, 1, 1, 0, 0};
-  uint16_t alarm_time = 2155;      // code - 40630
+  uint16_t alarm_time = 0630;     // code - 40630
   bool alarm = false;
   bool alarm_day_set = true;
   bool autoBrightness = false;    // autoBrightness on/off
@@ -31,7 +32,7 @@ struct pins {
   uint16_t period = 5000;
 
   const uint8_t relayPin = 12;
-  const uint8_t pirInputPin = 5;  // choose the input pin (for PIR sensor)
+  const uint8_t pirInputPin = 4;  // choose the input pin for PIR sensor
   bool light_always = false;
   uint8_t r_in = 100;             // RGB default
   uint8_t g_in = 100;
@@ -40,8 +41,8 @@ struct pins {
   const uint8_t g_in_def = 125;
   const uint8_t b_in_def = 125;
   bool done = false;          // flag for receive all 3 colors
-  uint8_t relayStatus = 1;       // pin status (def-t = OFF)
-  uint8_t pirStatus = 0;          // we start, assuming no motion detected (def-t = OFF)
+  uint8_t relayStatus = 1;    // pin status (def-t = OFF)
+  uint8_t pirStatus = 0;      // we start, assuming no motion detected (def-t = OFF)
   bool blt = false;           // BLT transmission ON/OFF
   unsigned char ch_data[4];   // store incoming date from BLT
 };
@@ -83,7 +84,7 @@ void RTC() {
   int rtc_day = now.dayOfTheWeek();
   int rtc_hour = now.hour();
   int rtc_minute = now.minute();
-  Serial.println("\tTime: " + String(rtc_day) + ":" + String(rtc_hour) + ":" + String(rtc_minute));
+  //Serial.println("\tTime: " + String(rtc_day) + ":" + String(rtc_hour) + ":" + String(rtc_minute));
 
   if (ptr->alarm_day_set) {
     if (sP.a_day[rtc_day] == 1) {
@@ -91,16 +92,18 @@ void RTC() {
       int alarm_time_m = ptr->alarm_time % 100;
       if (rtc_hour == alarm_time_h) {
         if (rtc_minute >= alarm_time_m) {
-          if (rtc_minute <= alarm_time_m + 2) {   // 3 min
-            Serial.println("ALARM ON");
-            Serial.println(alarm_time_h);
-            Serial.println(alarm_time_m);
-            digitalWrite(sP.relayPin, 0);  // turn LED ON
-            RGBStrip(50, 205, 50);    // rgb on, limegreen
-            Buzzer();
-            sP.alarm_on = true;
+          if (rtc_minute <= alarm_time_m + sP.alarm_duration - 1) {   // min
+            if (!sP.alarm_on) {
+              //Serial.println("ALARM ON");
+              //Serial.println(alarm_time_h);
+              //Serial.println(alarm_time_m);
+              digitalWrite(sP.relayPin, 0);  // turn LED ON
+              RGBStrip(50, 180, 50);    // rgb on, green
+              Buzzer();
+              sP.alarm_on = true;
+            }
           } else if (sP.alarm_on) {
-            Serial.println("ALARM OFF");
+            //Serial.println("ALARM OFF");
             digitalWrite(sP.relayPin, 1);  // turn LED ON
             RGBStrip(0, 0, 0);    // rgb on, limegreen
             sP.alarm_on = false;
@@ -187,7 +190,7 @@ void GetCommand(uint16_t in) {
 
   if ((in / 10000) == 4) {
     sP.alarm_time = in % 10000;
-    Serial.println(ptr->alarm_time);
+    //Serial.println(ptr->alarm_time);
   }
 }
 
@@ -234,11 +237,11 @@ void PIR(uint8_t val) {
     digitalWrite(sP.relayPin, 0);  // turn LED ON
     RGBStrip(ptr->r_in_def, ptr->g_in_def, ptr->b_in_def);
     if (ptr->pirStatus == 0) {
-      // Serial.println("Motion detected!");
+      //Serial.println("Motion detected!");
       sP.pirStatus = 1;
     }
   } else if (ptr->pirStatus == 1) {
-    // Serial.println("Motion ended!");
+    //Serial.println("Motion ended!");
     sP.pirStatus = 0;
   }
 }
