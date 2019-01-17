@@ -15,8 +15,9 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.skydoves.colorpickerview.ColorListener;
+import com.skydoves.colorpickerview.ColorEnvelope;
 import com.skydoves.colorpickerview.ColorPickerView;
+import com.skydoves.colorpickerview.listeners.ColorEnvelopeListener;
 
 import java.text.MessageFormat;
 import java.util.Objects;
@@ -58,10 +59,11 @@ public class MainActivity extends AppCompatActivity {
 
         mColorPickerView = findViewById(R.id.colorPickerView);
         mColorPickerView.selectCenter();
-        mColorPickerView.setColorListener(new ColorListener() {
+        mColorPickerView.setColorListener(new ColorEnvelopeListener() {
             @Override
-            public void onColorSelected(int color) {
-                setRGBColor(color);
+            public void onColorSelected(ColorEnvelope envelope, boolean fromUser) {
+                rgbColor = envelope.getArgb();
+                setRGBColor(envelope.getColor(), envelope.getHexCode());
             }
         });
 
@@ -155,15 +157,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void setRGBColor(int color) {
-
-        String rgbColorHtml = mColorPickerView.getColorHtml();
-
+    private void setRGBColor(int color, String hexCode) {
         TextView tv_representColor = findViewById(R.id.colorPickerTv);
-        tv_representColor.setText(MessageFormat.format("#{0}", rgbColorHtml));
+        tv_representColor.setText(MessageFormat.format("#{0}", hexCode));
         tv_representColor.setBackgroundColor(color);
-
-        rgbColor = mColorPickerView.getColorRGB();
 
         SendMassage.send(2, true);
         SendMassage.setRGBLight(rgbColor, getBrightness());
@@ -272,7 +269,7 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(aboutIntent, RESULT_OK);
     }
 
-    public void updateUI(){
+    public void updateUI() {
         //Log.d(TAG, "updateUI()");
 
         if (InputRecognition.rgbLight.equals("0")) {
@@ -290,7 +287,7 @@ public class MainActivity extends AppCompatActivity {
         this.brightness = brightness;
     }
 
-    private void setBtnColor(int state){
+    private void setBtnColor(int state) {
 
         if (state == 1) {
             btn_on.setBackgroundColor(getResources().getColor(R.color.colorAccent));
