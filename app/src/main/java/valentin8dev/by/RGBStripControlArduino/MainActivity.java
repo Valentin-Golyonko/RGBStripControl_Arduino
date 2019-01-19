@@ -248,6 +248,11 @@ public class MainActivity extends AppCompatActivity {
                 }
                 return true;
             case R.id.menu_settings:
+                // in development !
+                SendMassage.send(5, true);
+                SendMassage.send(4, true);
+                SendMassage.send(40, true);
+
                 // Soon™
                 return true;
             case R.id.menu_about:

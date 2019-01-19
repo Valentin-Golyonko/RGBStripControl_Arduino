@@ -22,8 +22,8 @@ struct pins {
 
   const uint8_t SDA = A4;         // I2C
   const uint8_t SCL = A5;
-  uint8_t alarm_day = 15;         // alarm days default (1-5 = work days), code - 4015, 4017
-  uint8_t a_day[7] = {1, 1, 1, 1, 1, 0, 0};
+  uint8_t alarm_day = 17;         // alarm days default (1-5 = work days), code - 4015, 4017
+  uint8_t a_day[7] = {1, 1, 1, 1, 1, 1, 1};
   uint16_t alarm_time = 0630;     // code - 40630
   bool alarm = false;
   bool alarm_day_set = true;
@@ -87,7 +87,7 @@ void RTC() {
   //Serial.println("\tTime: " + String(rtc_day) + ":" + String(rtc_hour) + ":" + String(rtc_minute));
 
   if (ptr->alarm_day_set) {
-    if (sP.a_day[rtc_day] == 1) {
+    if (sP.a_day[rtc_day] == 1) { // Alarm #1
       int alarm_time_h = ptr->alarm_time / 100; // 0620
       int alarm_time_m = ptr->alarm_time % 100;
       if (rtc_hour == alarm_time_h) {
@@ -99,7 +99,7 @@ void RTC() {
               //Serial.println(alarm_time_m);
               digitalWrite(sP.relayPin, 0);  // turn LED ON
               RGBStrip(50, 180, 50);    // rgb on, green
-              Buzzer();
+              //Buzzer();
               sP.alarm_on = true;
             }
           } else if (sP.alarm_on) {
@@ -120,6 +120,8 @@ void Alarm_Days(int d) {
       for (int i = 0; i < 5; i++) {
         sP.a_day[i] = 1;
       }
+      sP.a_day[5] = 0;
+      sP.a_day[6] = 0;
       break;
     case 17:
       for (int i = 0; i < 7; i++) {
