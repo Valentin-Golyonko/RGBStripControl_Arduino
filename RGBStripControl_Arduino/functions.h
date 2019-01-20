@@ -17,14 +17,15 @@ struct pins {
   const uint8_t pinPhoto = A0;    // photoresistor and
   uint16_t photo = 0;             // data from it
 
-  const uint8_t RX = 7;           // BLE
+  const uint8_t RX = 7;           // BLT
   const uint8_t TX = 6;
 
   const uint8_t SDA = A4;         // I2C
   const uint8_t SCL = A5;
   uint8_t alarm_day = 17;         // alarm days default (1-5 = work days), code - 4015, 4017
-  uint8_t a_day[7] = {1, 1, 1, 1, 1, 1, 1};
-  uint16_t alarm_time = 0630;     // code - 40630
+  uint8_t a_day[7] = {1, 1, 1, 1, 1, 1, 1}; // {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+  uint16_t alarm_time[7] = {930, 630, 630, 630, 630, 630, 930};
+  uint16_t alarm_time_t = 0630;   // code - 40630
   bool alarm = false;
   bool alarm_day_set = true;
   bool autoBrightness = false;    // autoBrightness on/off
@@ -64,7 +65,7 @@ void Transmit() {
 void RGBStrip(uint8_t r, uint8_t g, uint8_t b) {
   float multiplaer;
   if (ptr->autoBrightness) {
-    multiplaer = 1 - ((sP.photo + 1) / 1025);     // Max outer light -> min RGBStrip brightness
+    multiplaer = 1 - ((ptr->photo + 1) / 1025);     // Max outer light -> min RGBStrip brightness
   } else {
     multiplaer = 1;
   }
@@ -75,37 +76,34 @@ void RGBStrip(uint8_t r, uint8_t g, uint8_t b) {
 
 void Buzzer() {
   tone(ptr->pinBuzzer, 1000);   // Send 1KHz sound signal...
-  delay(100);                   // TODO: del
+  delay(100);
   noTone(ptr->pinBuzzer);       // Stop sound...
 }
 
 void RTC() {
   DateTime now = rtc.now();
-  int rtc_day = now.dayOfTheWeek();
+  int rtc_day = now.dayOfTheWeek();   // {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
   int rtc_hour = now.hour();
   int rtc_minute = now.minute();
   //Serial.println("\tTime: " + String(rtc_day) + ":" + String(rtc_hour) + ":" + String(rtc_minute));
 
   if (ptr->alarm_day_set) {
-    if (sP.a_day[rtc_day] == 1) { // Alarm #1
-      int alarm_time_h = ptr->alarm_time / 100; // 0620
-      int alarm_time_m = ptr->alarm_time % 100;
+    if (sP.a_day[rtc_day] == 1) {           // Alarm #1
+      int alarm_time_h = ptr->alarm_time[rtc_day] / 100;
+      int alarm_time_m = ptr->alarm_time[rtc_day] % 100;
       if (rtc_hour == alarm_time_h) {
         if (rtc_minute >= alarm_time_m) {
           if (rtc_minute <= alarm_time_m + sP.alarm_duration - 1) {   // min
             if (!sP.alarm_on) {
-              //Serial.println("ALARM ON");
-              //Serial.println(alarm_time_h);
-              //Serial.println(alarm_time_m);
-              digitalWrite(sP.relayPin, 0);  // turn LED ON
-              RGBStrip(50, 180, 50);    // rgb on, green
-              //Buzzer();
+              //Serial.println("ALARM ON " + String(alarm_time_h) + ":" + String(alarm_time_m));
+              digitalWrite(sP.relayPin, 0); // turn LED ON
+              RGBStrip(50, 190, 50);        // rgb on, green
               sP.alarm_on = true;
             }
           } else if (sP.alarm_on) {
             //Serial.println("ALARM OFF");
-            digitalWrite(sP.relayPin, 1);  // turn LED ON
-            RGBStrip(0, 0, 0);    // rgb on, limegreen
+            digitalWrite(sP.relayPin, 1);   // turn LED OFF
+            RGBStrip(0, 0, 0);              // rgb off
             sP.alarm_on = false;
           }
         }
@@ -114,19 +112,25 @@ void RTC() {
   }
 }
 
-void Alarm_Days(int d) {
+void Alarm_Days(int d, int _time) {    // {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
   switch (d) {
     case 15:
-      for (int i = 0; i < 5; i++) {
+      for (int i = 1; i <= 5; i++) {
         sP.a_day[i] = 1;
+        sP.alarm_time[i] = _time;
       }
-      sP.a_day[5] = 0;
-      sP.a_day[6] = 0;
       break;
     case 17:
-      for (int i = 0; i < 7; i++) {
+      for (int i = 0; i <= 6; i++) {
         sP.a_day[i] = 1;
+        sP.alarm_time[i] = _time;
       }
+      break;
+    case 55:    // "Sun" and "Sat"
+      sP.a_day[0] = 1;
+      sP.a_day[6] = 1;
+      sP.alarm_time[0] = _time;
+      sP.alarm_time[6] = _time;
       break;
   }
 }
@@ -162,11 +166,9 @@ void GetCommand(uint16_t in) {
       }
       break;
     case 4:
-      // alarm days - 15 (1 - 5 = work days) or 17(1 - 7 = week) or ...
       sP.alarm_day = in % 1000;
       if (ptr->alarm_day > 0) {
-        sP.alarm_day_set = true;
-        Alarm_Days(ptr->alarm_day);
+        sP.alarm_day_set = true;      // set alarm #1 of 2
       } else {
         sP.alarm_day_set = false;
       }
@@ -191,7 +193,9 @@ void GetCommand(uint16_t in) {
   }
 
   if ((in / 10000) == 4) {
-    sP.alarm_time = in % 10000;
+    sP.alarm_time_t = in % 10000;
+
+    Alarm_Days(ptr->alarm_day, ptr->alarm_time_t);  // set alarm #2 of 2
     //Serial.println(ptr->alarm_time);
   }
 }
@@ -202,7 +206,7 @@ void ListenBlt() {
     for (uint8_t i = 0; i < 4; i++) {
       // read input bytes
       sP.ch_data[i] = SerialBLE.read();
-      delay(10);    // magic! for stable receiving
+      delay(10);          // magic! for stable receiving
       // Serial.println("-----------");
       // Serial.println(ch_data[i], DEC);
       count++;
@@ -215,7 +219,7 @@ void ListenBlt() {
                      (int)(unsigned char)(sP.ch_data[2]) << 8 |
                      (int)(unsigned char)(sP.ch_data[3]);
 
-        // Serial.println(a, DEC);
+        //Serial.println(a, DEC);
         GetCommand(a);
         count = 0;
       }
@@ -226,7 +230,7 @@ void ListenBlt() {
 void PinStatus() {
   sP.relayStatus = digitalRead(ptr->relayPin);  // relayState
   sP.pirStatus = digitalRead(ptr->pirInputPin); // pirState
-  sP.photo = digitalRead(ptr->pinPhoto); // photoresistor
+  sP.photo = analogRead(ptr->pinPhoto);         // photoResistor
 
   //  Serial.println(
   //    "p" + (String)ptr->pirInputPin + "u" +

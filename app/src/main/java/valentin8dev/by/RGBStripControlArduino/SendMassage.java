@@ -46,7 +46,7 @@ class SendMassage {
                             value = 4017;
                             break;
                         case 40:    // alarm time; 4HHMM   code 4 + HH hour + MM min
-                            value = 40930;
+                            value = 41600;
                             break;
                         case 5:     // autoBrightness
                             if (bool) {
