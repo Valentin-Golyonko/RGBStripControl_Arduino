@@ -1,8 +1,8 @@
 // Made by https://github.com/Valentin-Golyonko. Apache License 2.0.
 // DIY: Arduino (nano v3) RGB Strip controller with bluetooth connection to android app.
 
-// Sketch uses 11144 bytes (36%) of program storage space. Maximum is 30720 bytes.
-// Global variables use 448 bytes (21%) of dynamic memory, leaving 1600 bytes for local variables. Maximum is 2048 bytes.
+// Sketch uses 11214 bytes (36%) of program storage space. Maximum is 30720 bytes.
+// Global variables use 476 bytes (23%) of dynamic memory, leaving 1572 bytes for local variables. Maximum is 2048 bytes.
 
 #include "functions.h"
 #include "music.h"
@@ -42,8 +42,11 @@ void setup() {
 
 void loop() {
 
-  if (ptr->alarm_on) {
-    play();
+  if (ptr->buzzer_play) {
+    if (ptr->alarm_on) {
+      play();
+      sP.buzzer_play = false;
+    }
   }
 
   // if the data came from SerialBLE

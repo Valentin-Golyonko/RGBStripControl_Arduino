@@ -1,39 +1,40 @@
 #include <stdint.h>
-#include <SoftwareSerial.h>
+#include <SoftwareSerial.h>     // ? mA (blt)
 #include <Wire.h>
 #include "RTClib.h"               // 1.781 mA
 
 struct pins {
-  const uint8_t BlueLedPin = 8;   // power indicator
-
-  const uint8_t REDPIN = 10;      // RGB Strip pins
-  const uint8_t GREENPIN = 11;
-  const uint8_t BLUEPIN = 9;
-
-  const uint8_t pinBuzzer = 3;
-  bool alarm_on = false;
-  uint8_t alarm_duration = 2;
-
-  const uint8_t pinPhoto = A0;    // photoresistor and
-  uint16_t photo = 0;             // data from it
-
   const uint8_t RX = 7;           // BLT
   const uint8_t TX = 6;
 
   const uint8_t SDA = A4;         // I2C
   const uint8_t SCL = A5;
+
+  const uint8_t BlueLedPin = 8;   // power indicator
+  const uint8_t relayPin = 12;
+  const uint8_t pirInputPin = 4;  // choose the input pin for PIR sensor
+  const uint8_t pinBuzzer = 3;
+  const uint8_t pinPhoto = A0;    // photoresistor and
+
+  const uint8_t REDPIN = 10;      // RGB Strip pins
+  const uint8_t GREENPIN = 11;
+  const uint8_t BLUEPIN = 9;
+
+  uint16_t photo = 0;             // data from it
+  bool buzzer_play = false;       // play/stop sound
+
+  bool alarm_on = false;
+  uint8_t alarm_duration = 5;     // minutes
   uint8_t alarm_day = 17;         // alarm days default (1-5 = work days), code - 4015, 4017
   uint8_t a_day[7] = {1, 1, 1, 1, 1, 1, 1}; // {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
   uint16_t alarm_time[7] = {930, 630, 630, 630, 630, 630, 930};
   uint16_t alarm_time_t = 0630;   // code - 40630
   bool alarm = false;
   bool alarm_day_set = true;
-  bool autoBrightness = false;    // autoBrightness on/off
 
+  bool autoBrightness = false;    // autoBrightness on/off
   uint16_t period = 5000;
 
-  const uint8_t relayPin = 12;
-  const uint8_t pirInputPin = 4;  // choose the input pin for PIR sensor
   bool light_always = false;
   uint8_t r_in = 100;             // RGB default
   uint8_t g_in = 100;
@@ -42,6 +43,7 @@ struct pins {
   const uint8_t g_in_def = 125;
   const uint8_t b_in_def = 125;
   bool done = false;          // flag for receive all 3 colors
+
   uint8_t relayStatus = 1;    // pin status (def-t = OFF)
   uint8_t pirStatus = 0;      // we start, assuming no motion detected (def-t = OFF)
   bool blt = false;           // BLT transmission ON/OFF
@@ -97,7 +99,8 @@ void RTC() {
             if (!sP.alarm_on) {
               //Serial.println("ALARM ON " + String(alarm_time_h) + ":" + String(alarm_time_m));
               digitalWrite(sP.relayPin, 0); // turn LED ON
-              RGBStrip(50, 190, 50);        // rgb on, green
+              RGBStrip(35, 250, 5);        // rgb on, green
+              sP.buzzer_play = true;
               sP.alarm_on = true;
             }
           } else if (sP.alarm_on) {
