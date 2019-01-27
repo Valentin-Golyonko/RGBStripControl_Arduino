@@ -46,6 +46,7 @@ void loop() {
     if (ptr->alarm_on) {
       play();
       sP.buzzer_play = false;
+      sP.light_always = true;
     }
   }
 

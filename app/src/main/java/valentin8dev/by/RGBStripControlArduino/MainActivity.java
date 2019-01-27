@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
         btn_on.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                SendMassage.send(2, true);
+                SendMassage.send(2, true, 0);
                 SendMassage.setRGBLight(rgbColor, getBrightness());
                 setBtnColor(1);
             }
@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
         btn_off.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                SendMassage.send(2, false);
+                SendMassage.send(2, false, 0);
                 setBtnColor(0);
             }
         });
@@ -162,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
         tv_representColor.setText(MessageFormat.format("#{0}", hexCode));
         tv_representColor.setBackgroundColor(color);
 
-        SendMassage.send(2, true);
+        SendMassage.send(2, true, 0);
         SendMassage.setRGBLight(rgbColor, getBrightness());
     }
 
@@ -248,12 +248,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 return true;
             case R.id.menu_settings:
-                // in development !
-                SendMassage.send(5, true);
-                SendMassage.send(4, true);
-                SendMassage.send(40, true);
-
-                // Soon™
+                openSettingsActivity();
                 return true;
             case R.id.menu_about:
                 openAboutActivity();
@@ -261,6 +256,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void openSettingsActivity() {
+        Intent settingsIntent = new Intent(this, SettingsActivity.class);
+        startActivityForResult(settingsIntent, RESULT_OK);
     }
 
     private void openDeviceList() {

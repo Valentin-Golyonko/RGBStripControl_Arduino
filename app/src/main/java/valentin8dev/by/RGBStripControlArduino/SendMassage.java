@@ -18,7 +18,7 @@ class SendMassage {
 
     private static int updatePeriod = 3;    // period of sending a message from the station = 3 sec
 
-    static void send(int i, boolean bool) {
+    static void send(int i, boolean bool, int alarm_time) {
         try {
             //Get the output stream for data transfer
             if (BluetoothService.getBltSocket() != null) {
@@ -46,7 +46,7 @@ class SendMassage {
                             value = 4017;
                             break;
                         case 40:    // alarm time; 4HHMM   code 4 + HH hour + MM min
-                            value = 41600;
+                            value = 40000 + alarm_time;
                             break;
                         case 5:     // autoBrightness
                             if (bool) {

@@ -419,7 +419,7 @@ class BluetoothService {
             int bytes;
 
             // send flag that tells arduino: android app is ready to receive date!
-            SendMassage.send(1, true);
+            SendMassage.send(1, true, 0);
 
             // Keep listening to the InputStream while connected
             while (state == Constants.STATE_CONNECTED) {

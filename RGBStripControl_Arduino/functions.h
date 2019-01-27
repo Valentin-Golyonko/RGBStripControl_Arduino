@@ -65,11 +65,9 @@ void Transmit() {
 }
 
 void RGBStrip(uint8_t r, uint8_t g, uint8_t b) {
-  float multiplaer;
+  float multiplaer = 1.0f;
   if (ptr->autoBrightness) {
     multiplaer = 1 - ((ptr->photo + 1) / 1025);     // Max outer light -> min RGBStrip brightness
-  } else {
-    multiplaer = 1;
   }
   analogWrite(sP.REDPIN , r * multiplaer);
   analogWrite(sP.GREENPIN , g * multiplaer);

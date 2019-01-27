@@ -21,9 +21,13 @@ const int aH = 880;
 
 const int buzzerPin = ptr->pinBuzzer;
 
+int counter = 0;
+
 void beep(int note, int duration) {
   //Play tone on buzzerPin
   tone(buzzerPin, note, duration);
+
+  delay(duration);
 
   //Stop tone on buzzerPin
   noTone(buzzerPin);
@@ -82,9 +86,6 @@ void secondSection() {
 }
 
 void play() {
-  unsigned long currentMillis_play = millis();
-  unsigned long previousMillis_play = 0;
-
   //Play first section
   firstSection();
 
@@ -102,8 +103,6 @@ void play() {
   beep(eH, 650);
 
   delay(500);
-  //if (currentMillis_play - previousMillis_play >= 500) {
-  previousMillis_play = currentMillis_play;
 
   //Repeat second section
   secondSection();
@@ -117,6 +116,6 @@ void play() {
   beep(f, 375);
   beep(cH, 125);
   beep(a, 650);
-  //}
+
   delay(650);
 }
