@@ -1,7 +1,9 @@
 #include <stdint.h>
-#include <SoftwareSerial.h>     // ? mA (blt)
+#include <SoftwareSerial.h>
+// HC-05 blt 2.0: not conneced: 5 - 50 mA | connecded: 4.3 - idle, 20 - receive
+// HC-09 (or 10) ble 4.0: not conneced: 8.6-9.3 mA | connecded: 9.3 - idle, 9.3 - receive
 #include <Wire.h>
-#include "RTClib.h"               // 1.781 mA
+#include "RTClib.h"               // 1.781 mA (china) | 6.15 mA (robotdyn)
 
 struct pins {
   const uint8_t RX = 7;           // BLT
@@ -36,12 +38,15 @@ struct pins {
   uint16_t period = 5000;
 
   bool light_always = false;
-  uint8_t r_in = 100;             // RGB default
+  uint8_t r_in = 100;             // RGB default before receive
   uint8_t g_in = 100;
   uint8_t b_in = 100;
   const uint8_t r_in_def = 125;   // RGB default
   const uint8_t g_in_def = 125;
   const uint8_t b_in_def = 125;
+  const uint8_t r_in_alarm = 35;  // RGB Alarm Color
+  const uint8_t g_in_alarm = 250;
+  const uint8_t b_in_alarm = 5;
   bool done = false;          // flag for receive all 3 colors
 
   uint8_t relayStatus = 1;    // pin status (def-t = OFF)
@@ -67,7 +72,7 @@ void Transmit() {
 void RGBStrip(uint8_t r, uint8_t g, uint8_t b) {
   float multiplaer = 1.0f;
   if (ptr->autoBrightness) {
-    multiplaer = 1 - ((ptr->photo + 1) / 1025);     // Max outer light -> min RGBStrip brightness
+    multiplaer = 1 - ((ptr->photo + 1) / 1024);     // Max outer light -> min RGBStrip brightness
   }
   analogWrite(sP.REDPIN , r * multiplaer);
   analogWrite(sP.GREENPIN , g * multiplaer);
@@ -97,7 +102,7 @@ void RTC() {
             if (!sP.alarm_on) {
               //Serial.println("ALARM ON " + String(alarm_time_h) + ":" + String(alarm_time_m));
               digitalWrite(sP.relayPin, 0); // turn LED ON
-              RGBStrip(35, 250, 5);        // rgb on, green
+              RGBStrip(ptr->r_in_alarm, ptr->g_in_alarm, ptr->b_in_alarm);
               sP.buzzer_play = true;
               sP.alarm_on = true;
             }
@@ -106,6 +111,7 @@ void RTC() {
             digitalWrite(sP.relayPin, 1);   // turn LED OFF
             RGBStrip(0, 0, 0);              // rgb off
             sP.alarm_on = false;
+            sP.light_always = false;
           }
         }
       }
