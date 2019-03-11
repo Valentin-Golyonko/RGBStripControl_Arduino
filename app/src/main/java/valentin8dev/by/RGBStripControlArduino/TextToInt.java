@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 
 class TextToInt {
 
-    private static final String TAG = "TextToInt";
+    private static final String TAG = TextToInt.class.getSimpleName();
 
     static void TextRecognition(String string) {
 

@@ -12,7 +12,7 @@ import android.widget.TextView;
 
 public class AboutActivity extends Activity {
 
-    private static final String TAG = "AboutActivity";
+    private static final String TAG = AboutActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

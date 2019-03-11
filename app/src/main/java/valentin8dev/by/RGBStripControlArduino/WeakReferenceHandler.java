@@ -9,7 +9,7 @@ import java.lang.ref.WeakReference;
 
 public class WeakReferenceHandler extends Handler {
 
-    private static final String TAG = "WeakReferenceHandler";
+    private static final String TAG = WeakReferenceHandler.class.getSimpleName();
 
     private final WeakReference<MainActivity> bluetoothFragmentWeakReference;
     private StringBuilder sb = new StringBuilder();

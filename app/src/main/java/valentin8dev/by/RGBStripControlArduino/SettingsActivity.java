@@ -11,7 +11,7 @@ import java.util.Arrays;
 
 public class SettingsActivity extends Activity {
 
-    private static final String TAG = "SettingsActivity";
+    private static final String TAG = SettingsActivity.class.getSimpleName();
 
     EditText et_time;
 

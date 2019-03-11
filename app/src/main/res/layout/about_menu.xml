@@ -1,10 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="300dp"
-    android:layout_height="100dp"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
     android:gravity="center_horizontal"
+    android:orientation="vertical"
     android:layout_gravity="center|top">
+
+    <TextView
+        style="@style/my"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:textSize="16sp"
+        android:text="Made by:"/>
+
+    <ImageView
+        style="@style/my"
+        android:layout_width="200dp"
+        android:layout_height="50dp"
+        android:background="@drawable/beQuite"/>
 
     <TextView
         android:id="@+id/tv_menu_hello"

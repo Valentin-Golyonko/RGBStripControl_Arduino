@@ -9,7 +9,7 @@ import java.util.Arrays;
 
 class SendMassage {
 
-    private static final String TAG = "SendMassage";
+    private static final String TAG = SendMassage.class.getSimpleName();
     /**
      * all SendMassage in one 'switch' :
      * 1 = bluetooth status

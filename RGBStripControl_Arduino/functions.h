@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <SoftwareSerial.h>
-// HC-05 blt 2.0: not conneced: 5 - 50 mA | connecded: 4.3 - idle, 20 - receive
-// HC-09 (or 10) ble 4.0: not conneced: 8.6-9.3 mA | connecded: 9.3 - idle, 9.3 - receive
+// HC-06 blt 2.0: not conneced: 5 - 50 mA | connecded: 4.3 - idle, 20 - receive
+// HM-10 ble 4.0: not conneced: 8.6-9.3 mA | connecded: 9.3 - idle, 9.3 - receive
 #include <Wire.h>
 #include "RTClib.h"               // 1.781 mA (china) | 6.15 mA (robotdyn)
 
@@ -33,8 +33,9 @@ struct pins {
   uint16_t alarm_time_t = 0630;   // code - 40630
   bool alarm = false;
   bool alarm_day_set = true;
+  bool repeat = true;             // repeat alarm
 
-  bool autoBrightness = false;    // autoBrightness on/off
+  bool autoBrightness = true;    // autoBrightness on/off
   uint16_t period = 5000;
 
   bool light_always = false;
@@ -72,7 +73,7 @@ void Transmit() {
 void RGBStrip(uint8_t r, uint8_t g, uint8_t b) {
   float multiplaer = 1.0f;
   if (ptr->autoBrightness) {
-    multiplaer = 1 - ((ptr->photo + 1) / 1024);     // Max outer light -> min RGBStrip brightness
+    multiplaer = 1 - ((sP.photo + 1) / 1024);     // Max outer light -> min RGBStrip brightness
   }
   analogWrite(sP.REDPIN , r * multiplaer);
   analogWrite(sP.GREENPIN , g * multiplaer);
@@ -97,8 +98,8 @@ void RTC() {
       int alarm_time_h = ptr->alarm_time[rtc_day] / 100;
       int alarm_time_m = ptr->alarm_time[rtc_day] % 100;
       if (rtc_hour == alarm_time_h) {
-        if (rtc_minute >= alarm_time_m) {
-          if (rtc_minute <= alarm_time_m + sP.alarm_duration - 1) {   // min
+        if (rtc_minute >= alarm_time_m) {                             // start min
+          if (rtc_minute <= alarm_time_m + sP.alarm_duration - 1) {   // stop min
             if (!sP.alarm_on) {
               //Serial.println("ALARM ON " + String(alarm_time_h) + ":" + String(alarm_time_m));
               digitalWrite(sP.relayPin, 0); // turn LED ON
@@ -112,6 +113,10 @@ void RTC() {
             RGBStrip(0, 0, 0);              // rgb off
             sP.alarm_on = false;
             sP.light_always = false;
+
+            if (ptr->repeat) {
+              sP.alarm_time[rtc_day] += 10; // 0630 + 10 = 0640
+            }
           }
         }
       }
@@ -215,7 +220,7 @@ void ListenBlt() {
       sP.ch_data[i] = SerialBLE.read();
       delay(10);          // magic! for stable receiving
       // Serial.println("-----------");
-      // Serial.println(ch_data[i], DEC);
+      // Serial.println(sP.ch_data[i], DEC);
       count++;
       // i use only 2 bytes (2^16-1), ex-pl:  0010 0011 1101 1100  = 9180 (int)
       // 2 bytes MAX = 65535

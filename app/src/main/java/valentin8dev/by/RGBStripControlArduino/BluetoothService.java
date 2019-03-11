@@ -23,12 +23,10 @@ import java.util.UUID;
  */
 class BluetoothService {
 
-    private static final String TAG = "BluetoothService";
+    private static final String TAG = BluetoothService.class.getSimpleName();
 
     // Unique UUID for this application
-    private final UUID MY_UUID_SECURE =
-            UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-
+    private final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     static int state;
 
     private static BluetoothSocket bltSocket;
@@ -260,7 +258,7 @@ class BluetoothService {
             // Create a new listening server socket
             try {
                 tmp = bltAdapter.listenUsingRfcommWithServiceRecord("BluetoothSecure",
-                        MY_UUID_SECURE);
+                        MY_UUID);
 
             } catch (IOException e) {
                 //Log.e(TAG, "listen() failed", e);
@@ -338,7 +336,7 @@ class BluetoothService {
             // given BluetoothDevice
             try {
                 tmp = device.createRfcommSocketToServiceRecord(
-                        MY_UUID_SECURE);
+                        MY_UUID);
             } catch (IOException e) {
                 Log.e(TAG, "create() failed", e);
             }

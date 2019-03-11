@@ -4,7 +4,7 @@ import android.util.Log;
 
 class InputRecognition {
 
-    private static final String TAG = "InputRecognition";
+    private static final String TAG = InputRecognition.class.getSimpleName();
 
     static String pirSensor = "--", rgbLight = "--";
     private static int l = -1, w = -1, p = -1, u = -1;
