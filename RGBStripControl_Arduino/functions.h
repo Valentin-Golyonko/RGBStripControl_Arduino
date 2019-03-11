@@ -5,7 +5,7 @@
 #include <Wire.h>
 #include "RTClib.h"               // 1.781 mA (china) | 6.15 mA (robotdyn)
 
-struct pins {
+struct input {
   const uint8_t RX = 7;           // BLT
   const uint8_t TX = 6;
 
@@ -56,8 +56,8 @@ struct pins {
   unsigned char ch_data[4];   // store incoming date from BLT
 };
 
-struct pins sP;
-struct pins *ptr = &sP;
+struct input sP;
+struct input *ptr = &sP;
 
 SoftwareSerial SerialBLE(sP.RX, sP.TX); // RX,TX on arduino board
 
@@ -73,11 +73,12 @@ void Transmit() {
 void RGBStrip(uint8_t r, uint8_t g, uint8_t b) {
   float multiplaer = 1.0f;
   if (ptr->autoBrightness) {
-    multiplaer = 1 - ((sP.photo + 1) / 1024);     // Max outer light -> min RGBStrip brightness
+    multiplaer = 1.0f - (float)((sP.photo + 1.0f) / 1025.0f);   // Max outer light -> min RGBStrip brightness
   }
-  analogWrite(sP.REDPIN , r * multiplaer);
-  analogWrite(sP.GREENPIN , g * multiplaer);
-  analogWrite(sP.BLUEPIN , b * multiplaer);
+
+  analogWrite(ptr->REDPIN , r * multiplaer);
+  analogWrite(ptr->GREENPIN , g * multiplaer);
+  analogWrite(ptr->BLUEPIN , b * multiplaer);
 }
 
 void Buzzer() {
@@ -97,18 +98,21 @@ void RTC() {
     if (sP.a_day[rtc_day] == 1) {           // Alarm #1
       int alarm_time_h = ptr->alarm_time[rtc_day] / 100;
       int alarm_time_m = ptr->alarm_time[rtc_day] % 100;
+
       if (rtc_hour == alarm_time_h) {
         if (rtc_minute >= alarm_time_m) {                             // start min
           if (rtc_minute <= alarm_time_m + sP.alarm_duration - 1) {   // stop min
+
+            //Serial.println("ALARM ON " + String(alarm_time_h) + ":" + String(alarm_time_m));
+            digitalWrite(sP.relayPin, 0);   // turn LED ON
+            RGBStrip(ptr->r_in_alarm, ptr->g_in_alarm, ptr->b_in_alarm);
+            sP.light_always = true;
+
             if (!sP.alarm_on) {
-              //Serial.println("ALARM ON " + String(alarm_time_h) + ":" + String(alarm_time_m));
-              digitalWrite(sP.relayPin, 0); // turn LED ON
-              RGBStrip(ptr->r_in_alarm, ptr->g_in_alarm, ptr->b_in_alarm);
-              sP.buzzer_play = true;
+              sP.buzzer_play = true;        // 1 time music play
               sP.alarm_on = true;
             }
           } else if (sP.alarm_on) {
-            //Serial.println("ALARM OFF");
             digitalWrite(sP.relayPin, 1);   // turn LED OFF
             RGBStrip(0, 0, 0);              // rgb off
             sP.alarm_on = false;
@@ -155,12 +159,9 @@ void GetCommand(uint16_t in) {
       Transmit();
       sP.blt = true;
       sP.period = (in % 1000) * 1000;  // in % 1000 = 5 -> 5sec = 5000ms
-      // Serial.println(blt);
-      // Serial.println(period);
       break;
     case 2: // stop transmition date
       sP.blt = false;
-      // Serial.println(blt);
       break;
     case 3:
       // 3002 <= in <= 3000, relayPin + ON always / OFF
@@ -208,7 +209,6 @@ void GetCommand(uint16_t in) {
     sP.alarm_time_t = in % 10000;
 
     Alarm_Days(ptr->alarm_day, ptr->alarm_time_t);  // set alarm #2 of 2
-    //Serial.println(ptr->alarm_time);
   }
 }
 
@@ -219,8 +219,8 @@ void ListenBlt() {
       // read input bytes
       sP.ch_data[i] = SerialBLE.read();
       delay(10);          // magic! for stable receiving
-      // Serial.println("-----------");
-      // Serial.println(sP.ch_data[i], DEC);
+      //Serial.println("-----------");
+      //Serial.println(sP.ch_data[i], DEC);
       count++;
       // i use only 2 bytes (2^16-1), ex-pl:  0010 0011 1101 1100  = 9180 (int)
       // 2 bytes MAX = 65535
@@ -255,11 +255,9 @@ void PIR(uint8_t val) {
     digitalWrite(sP.relayPin, 0);  // turn LED ON
     RGBStrip(ptr->r_in_def, ptr->g_in_def, ptr->b_in_def);
     if (ptr->pirStatus == 0) {
-      //Serial.println("Motion detected!");
       sP.pirStatus = 1;
     }
   } else if (ptr->pirStatus == 1) {
-    //Serial.println("Motion ended!");
     sP.pirStatus = 0;
   }
 }

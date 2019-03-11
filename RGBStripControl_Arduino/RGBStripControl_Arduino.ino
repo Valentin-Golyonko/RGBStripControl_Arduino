@@ -35,8 +35,7 @@ void setup() {
 
   rtc.begin();
 
-  // UART speed
-  //Serial.begin(9600);
+  //Serial.begin(9600);         // UART speed
   SerialBLE.begin(9600);
 
   Buzzer();
@@ -45,15 +44,13 @@ void setup() {
 void loop() {
 
   if (ptr->buzzer_play) {
-    if (ptr->alarm_on) {
-      play();
-      sP.buzzer_play = false;
-      sP.light_always = true;
+    if (ptr->alarm_on) {        // if time to Alarm
+      play();                   // play music
+      sP.buzzer_play = false;   // but 1 time
     }
   }
 
-  // if the data came from SerialBLE
-  ListenBlt();
+  ListenBlt();        // if the data came from SerialBLE
 
   unsigned long currentMillis = millis();
 
@@ -61,8 +58,7 @@ void loop() {
     previousMillis_1 = currentMillis;
 
     if (ptr->blt) {
-      // transmite date to android app over bluetooth
-      Transmit();
+      Transmit();     // transmite date to android app over bluetooth
     }
   }
 
@@ -71,18 +67,15 @@ void loop() {
 
     RTC();
 
-    // update sensors status
-    PinStatus();
+    PinStatus();      // update sensors status
 
-    // set the color in Rgb Strip
     if (ptr->light_always) {
-      if (ptr->done) {
+      if (ptr->done) {          // get date from androin App and set the color in Rgb Strip
         RGBStrip(ptr->r_in, ptr->g_in, ptr->b_in);
         sP.done = false;
       }
     } else if (!ptr->light_always) {
-      // update PIR sensor status
-      PIR(ptr->pirStatus);
+      PIR(ptr->pirStatus);      // else - update PIR sensor status
     }
   }
 
