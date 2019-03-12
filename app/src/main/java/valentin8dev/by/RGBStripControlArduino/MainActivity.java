@@ -3,9 +3,9 @@ package valentin8dev.by.RGBStripControlArduino;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.Toolbar;
@@ -20,6 +20,8 @@ import com.skydoves.colorpickerview.ColorEnvelope;
 import com.skydoves.colorpickerview.ColorPickerView;
 import com.skydoves.colorpickerview.listeners.ColorEnvelopeListener;
 
+import org.jetbrains.annotations.Contract;
+
 import java.text.MessageFormat;
 import java.util.Objects;
 
@@ -29,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
 
     private final int REQUEST_CONNECT_DEVICE_SECURE = 1;
     private final int REQUEST_ENABLE_BT = 3;
+    public Toolbar toolbar;
     private BluetoothAdapter mBluetoothAdapter = null;
     private BluetoothService mBluetoothService = null;
     private float brightness = 70f;
@@ -37,7 +40,6 @@ public class MainActivity extends AppCompatActivity {
     private ColorPickerView mColorPickerView;
     private AppCompatButton btn_on, btn_off;
     private TextView tv_sb;
-    public Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -213,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Establish connection with other device
      */
-    private void connectDevice(Intent data) {
+    private void connectDevice(@NonNull Intent data) {
         // Get the device MAC address
         String address = Objects.requireNonNull(data.getExtras())
                 .getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
@@ -285,6 +287,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Contract(pure = true)
     private float getBrightness() {
         return brightness;
     }

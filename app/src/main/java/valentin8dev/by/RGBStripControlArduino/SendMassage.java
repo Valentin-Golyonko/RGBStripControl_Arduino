@@ -18,7 +18,7 @@ class SendMassage {
 
     private static int updatePeriod = 3;    // period of sending a message from the station = 3 sec
 
-    static void send(int i, boolean bool, int alarm_time) {
+    static void send(int i, boolean bool, int data) {
         try {
             //Get the output stream for data transfer
             if (BluetoothService.getBltSocket() != null) {
@@ -28,31 +28,30 @@ class SendMassage {
 
                     switch (i) {
                         case 1:     // bltStatus
-                            // Depending on which button was pressed, we change the data to send
                             if (bool) {
                                 value = 1000 + updatePeriod;    // BLT ON, ready to receive data, period = 5sec
                             } else {
                                 value = 2000;    // BLT OFF, stop transmit from arduino
                             }
                             break;
-                        case 2:     // switchRgbLight
+                        case 2:
                             if (bool) {
-                                value = 3002;    // RGBStrip ON always
+                                value = 3002;   // RGBStrip ON always
                             } else {
-                                value = 3000;
+                                value = 3000;   // RGBStrip OFF
                             }
                             break;
                         case 4:     // alarm days; 40DD = 40 + DD 1-5 or 1-7...
-                            value = 4017;
+                            value = 4000 + data;
                             break;
                         case 40:    // alarm time; 4HHMM   code 4 + HH hour + MM min
-                            value = 40000 + alarm_time;
+                            value = 40000 + data;
                             break;
-                        case 5:     // autoBrightness
+                        case 5:
                             if (bool) {
-                                value = 5001;
+                                value = 5001;   // autoBrightness ON
                             } else {
-                                value = 5000;
+                                value = 5000;   // autoBrightness OFF
                             }
                             break;
                     }

@@ -1,13 +1,11 @@
 package valentin8dev.by.RGBStripControlArduino;
 
-import android.util.Log;
-
 class InputRecognition {
 
     private static final String TAG = InputRecognition.class.getSimpleName();
 
-    static String pirSensor = "--", rgbLight = "--";
-    private static int l = -1, w = -1, p = -1, u = -1;
+    static String pirSensor = "--", rgbLight = "--", photoRes = "--", autoB = "--";
+    private static int l = -1, w = -1, p = -1, u = -1, f = -1, r = -1, a = -1, b = -1;
 
     /**
      * resolve input string 'in' to data (int) and parse it to the Activity (view elements)
@@ -29,6 +27,10 @@ class InputRecognition {
                     case 'w': w = i; break;
                     case 'p': p = i + 1; break;
                     case 'u': u = i; break;
+                    case 'f': f = i + 1; break;
+                    case 'r': r = i; break;
+                    case 'a': a = i + 1; break;
+                    case 'b': b = i; break;
                 }
             }
 
@@ -37,6 +39,12 @@ class InputRecognition {
 
             pirSensor = parameter(input, p, u);
             p = u = -1;
+
+            photoRes = parameter(input, f, r);
+            f = r = -1;
+
+            autoB = parameter(input, a, b);
+            a = b = -1;
         }
     }
 

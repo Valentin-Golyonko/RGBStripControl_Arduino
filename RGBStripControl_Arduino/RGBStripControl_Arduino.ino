@@ -2,9 +2,9 @@
 //
 // DIY: Arduino (nano v3) RGB Strip controller with bluetooth connection to android app.
 //
-// Sketch uses 11246 bytes (36%) of program storage space. Maximum is 30720 bytes.
-// Global variables use 479 bytes (23%) of dynamic memory,
-// leaving 1569 bytes for local variables. Maximum is 2048 bytes.
+// Sketch uses 11862 bytes (38%) of program storage space. Maximum is 30720 bytes.
+// Global variables use 489 bytes (23%) of dynamic memory,
+// leaving 1559 bytes for local variables. Maximum is 2048 bytes.
 
 #include "functions.h"
 #include "music.h"
@@ -58,7 +58,7 @@ void loop() {
     previousMillis_1 = currentMillis;
 
     if (ptr->blt) {
-      Transmit();     // transmite date to android app over bluetooth
+      Transmit();     // transmit date to android app over bluetooth
     }
   }
 
@@ -70,7 +70,7 @@ void loop() {
     PinStatus();      // update sensors status
 
     if (ptr->light_always) {
-      if (ptr->done) {          // get date from androin App and set the color in Rgb Strip
+      if (ptr->done) {          // get date from android App and set the color in Rgb Strip
         RGBStrip(ptr->r_in, ptr->g_in, ptr->b_in);
         sP.done = false;
       }

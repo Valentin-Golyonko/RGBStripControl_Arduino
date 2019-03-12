@@ -7,7 +7,10 @@ import android.bluetooth.BluetoothSocket;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.util.Log;
+
+import org.jetbrains.annotations.Contract;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,12 +27,10 @@ import java.util.UUID;
 class BluetoothService {
 
     private static final String TAG = BluetoothService.class.getSimpleName();
-
+    static int state;
+    private static BluetoothSocket bltSocket;
     // Unique UUID for this application
     private final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-    static int state;
-
-    private static BluetoothSocket bltSocket;
     private final BluetoothAdapter bltAdapter;
     private final Handler mHandler;
     private AcceptThread secureAcceptThread;
@@ -48,6 +49,7 @@ class BluetoothService {
         mHandler = handler;
     }
 
+    @Contract(pure = true)
     static BluetoothSocket getBltSocket() {
         return bltSocket;
     }
@@ -328,7 +330,7 @@ class BluetoothService {
     private class ConnectThread extends Thread {
         private final BluetoothDevice mmDevice;
 
-        ConnectThread(BluetoothDevice device) {
+        ConnectThread(@NonNull BluetoothDevice device) {
             mmDevice = device;
             BluetoothSocket tmp = null;
 
@@ -392,7 +394,7 @@ class BluetoothService {
         private final InputStream mmInStream;
         private final OutputStream mmOutStream;
 
-        ConnectedThread(BluetoothSocket socket) {
+        ConnectedThread(@NonNull BluetoothSocket socket) {
             //Log.d(TAG, "create ConnectedThread");
             bltSocket = socket;
             InputStream tmpIn = null;

@@ -1,30 +1,195 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    style="@style/my"
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    style="@style/my"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center_horizontal">
+    android:gravity="center_horizontal"
+    android:orientation="vertical">
 
-    <EditText
-        android:textSize="14sp"
-        android:id="@+id/et_time"
+    <TextView
+        android:id="@+id/tv_set_alarm"
         style="@style/my"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="time"
+        android:text="@string/set_alarm"
         android:textAlignment="center"
-        tools:text="@tools:sample/date/hhmm" />
+        android:textColor="@color/textColorPrimary"
+        android:textSize="16sp" />
 
-    <Button
-        android:textSize="14sp"
+    <LinearLayout
         style="@style/my"
-        android:text="@string/btn_OK"
-        android:id="@+id/btn_settings_ok"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/et_time_h"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ems="5"
+            android:hint="@string/time_hint_h"
+            android:inputType="time"
+            android:textAlignment="center"
+            android:textColor="@color/textColorPrimary"
+            android:textSize="16sp"
+            tools:text="@tools:sample/date/hhmm" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=":"
+            android:textColor="@color/textColorPrimary"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/et_time_m"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:ems="5"
+            android:hint="@string/time_hint_m"
+            android:inputType="time"
+            android:textAlignment="center"
+            android:textColor="@color/textColorPrimary"
+            android:textSize="16sp"
+            tools:text="@tools:sample/date/hhmm" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        style="@style/my"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <ToggleButton
+            android:id="@+id/tb1"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:textColor="@color/textColorPrimary"
+            android:textOff="@string/day_mon"
+            android:textOn="@string/day_mon" />
+
+        <ToggleButton
+            android:id="@+id/tb2"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:textColor="@color/textColorPrimary"
+            android:textOff="@string/day_tue"
+            android:textOn="@string/day_tue" />
+
+        <ToggleButton
+            android:id="@+id/tb3"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:textColor="@color/textColorPrimary"
+            android:textOff="@string/day_wed"
+            android:textOn="@string/day_wed" />
+
+        <ToggleButton
+            android:id="@+id/tb4"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:textColor="@color/textColorPrimary"
+            android:textOff="@string/day_thu"
+            android:textOn="@string/day_thu" />
+
+        <ToggleButton
+            android:id="@+id/tb5"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:textColor="@color/textColorPrimary"
+            android:textOff="@string/day_fri"
+            android:textOn="@string/day_fri" />
+
+        <ToggleButton
+            android:id="@+id/tb6"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:textColor="@color/textColorPrimary"
+            android:textOff="@string/day_sat"
+            android:textOn="@string/day_sat" />
+
+        <ToggleButton
+            android:id="@+id/tb7"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:textColor="@color/textColorPrimary"
+            android:textOff="@string/day_sun"
+            android:textOn="@string/day_sun" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        style="@style/my"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_set_alarm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/alarm_set"
+            android:textColor="@color/textColorPrimary"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/btn_alarm_off"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/alarm_off"
+            android:textColor="@color/textColorPrimary"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/colorDivider" />
+
+    <LinearLayout
+        style="@style/my"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/auto_brightness"
+            android:textColor="@color/textColorPrimary"
+            android:textSize="16sp" />
+
+        <ToggleButton
+            android:id="@+id/tb_auto_b"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textColor="@color/textColorPrimary" />
+
+        <TextView
+            android:id="@+id/tv_auto_b"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="0.9"
+            android:textColor="@color/textColorPrimary"
+            android:textSize="16sp" />
+
+    </LinearLayout>
 
 </LinearLayout>

@@ -92,22 +92,22 @@
 
             <android.support.v7.widget.AppCompatButton
                 android:id="@+id/rgb_btn_ON"
-                android:background="@color/colorTextIcons"
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
                 android:layout_gravity="center"
                 android:layout_weight="1"
+                android:background="@color/colorTextIcons"
                 android:text="@string/btn_ON"
                 android:textColor="@color/textColorPrimary"
                 android:textSize="18sp" />
 
             <android.support.v7.widget.AppCompatButton
                 android:id="@+id/rgb_btn_OFF"
-                android:background="@color/colorTextIcons"
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
                 android:layout_gravity="center"
                 android:layout_weight="1"
+                android:background="@color/colorTextIcons"
                 android:text="@string/btn_OFF"
                 android:textColor="@color/textColorPrimary"
                 android:textSize="18sp" />

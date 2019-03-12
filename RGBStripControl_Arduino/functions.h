@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <SoftwareSerial.h>
-// HC-06 blt 2.0: not conneced: 5 - 50 mA | connecded: 4.3 - idle, 20 - receive
-// HM-10 ble 4.0: not conneced: 8.6-9.3 mA | connecded: 9.3 - idle, 9.3 - receive
+// HC-06 blt 2.0: not connected: 5 - 50 mA | connected: 4.3 - idle, 20 - receive
+// HM-10 ble 4.0: not connected: 8.6-9.3 mA | connected: 9.3 - idle, 9.3 - receive
 #include <Wire.h>
 #include "RTClib.h"               // 1.781 mA (china) | 6.15 mA (robotdyn)
 
@@ -16,7 +16,7 @@ struct input {
   const uint8_t relayPin = 12;
   const uint8_t pirInputPin = 4;  // choose the input pin for PIR sensor
   const uint8_t pinBuzzer = 3;
-  const uint8_t pinPhoto = A0;    // photoresistor and
+  const uint8_t pinPhoto = A0;    // photo resistor
 
   const uint8_t REDPIN = 10;      // RGB Strip pins
   const uint8_t GREENPIN = 11;
@@ -27,7 +27,7 @@ struct input {
 
   bool alarm_on = false;
   uint8_t alarm_duration = 5;     // minutes
-  uint8_t alarm_day = 17;         // alarm days default (1-5 = work days), code - 4015, 4017
+  uint8_t alarm_day = 0;          // code: 4001 - 4017
   uint8_t a_day[7] = {1, 1, 1, 1, 1, 1, 1}; // {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
   uint16_t alarm_time[7] = {930, 630, 630, 630, 630, 630, 930};
   uint16_t alarm_time_t = 0630;   // code - 40630
@@ -35,7 +35,8 @@ struct input {
   bool alarm_day_set = true;
   bool repeat = true;             // repeat alarm
 
-  bool autoBrightness = true;    // autoBrightness on/off
+  bool autoBrightness = true;     // autoBrightness on/off
+  uint8_t autoB = 1;
   uint16_t period = 5000;
 
   bool light_always = false;
@@ -63,28 +64,33 @@ SoftwareSerial SerialBLE(sP.RX, sP.TX); // RX,TX on arduino board
 
 RTC_DS3231 rtc;
 
+uint8_t brightness() {
+  if (ptr->autoBrightness) {
+    sP.autoB = 1;
+  } else {
+    sP.autoB = 0;
+  }
+  return ptr->autoB;
+}
+
 void Transmit() {
   SerialBLE.println(
-    "p" + (String)ptr->pirStatus + "u" +
-    "l" + (String)ptr->relayStatus + "w" +
+    "p" + String(ptr->pirStatus) + "u" +
+    "l" + String(ptr->relayStatus) + "w" +
+    "f" + String(ptr->photo) + "r" +
+    "a" + String(brightness()) + "b" +
     "E"); // end of the line
 }
 
 void RGBStrip(uint8_t r, uint8_t g, uint8_t b) {
-  float multiplaer = 1.0f;
+  float multiplier = 1.0f;
   if (ptr->autoBrightness) {
-    multiplaer = 1.0f - (float)((sP.photo + 1.0f) / 1025.0f);   // Max outer light -> min RGBStrip brightness
+    multiplier = 1.0f - (float)((sP.photo + 1.0f) / 1025.0f);   // Max outer light -> min RGBStrip brightness
   }
 
-  analogWrite(ptr->REDPIN , r * multiplaer);
-  analogWrite(ptr->GREENPIN , g * multiplaer);
-  analogWrite(ptr->BLUEPIN , b * multiplaer);
-}
-
-void Buzzer() {
-  tone(ptr->pinBuzzer, 1000);   // Send 1KHz sound signal...
-  delay(100);
-  noTone(ptr->pinBuzzer);       // Stop sound...
+  analogWrite(ptr->REDPIN , r * multiplier);
+  analogWrite(ptr->GREENPIN , g * multiplier);
+  analogWrite(ptr->BLUEPIN , b * multiplier);
 }
 
 void RTC() {
@@ -128,29 +134,6 @@ void RTC() {
   }
 }
 
-void Alarm_Days(int d, int _time) {    // {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-  switch (d) {
-    case 15:
-      for (int i = 1; i <= 5; i++) {
-        sP.a_day[i] = 1;
-        sP.alarm_time[i] = _time;
-      }
-      break;
-    case 17:
-      for (int i = 0; i <= 6; i++) {
-        sP.a_day[i] = 1;
-        sP.alarm_time[i] = _time;
-      }
-      break;
-    case 55:    // "Sun" and "Sat"
-      sP.a_day[0] = 1;
-      sP.a_day[6] = 1;
-      sP.alarm_time[0] = _time;
-      sP.alarm_time[6] = _time;
-      break;
-  }
-}
-
 void GetCommand(uint16_t in) {
   // We obtain the pin number by integer division (we find 1 number == pin)
   // and the action we need by obtaining the remainder of the division by 1000.
@@ -160,7 +143,7 @@ void GetCommand(uint16_t in) {
       sP.blt = true;
       sP.period = (in % 1000) * 1000;  // in % 1000 = 5 -> 5sec = 5000ms
       break;
-    case 2: // stop transmition date
+    case 2: // stop date transmit
       sP.blt = false;
       break;
     case 3:
@@ -181,16 +164,21 @@ void GetCommand(uint16_t in) {
     case 4:
       sP.alarm_day = in % 1000;
       if (ptr->alarm_day > 0) {
-        sP.alarm_day_set = true;      // set alarm #1 of 2
+        sP.alarm_day_set = true;      // allow alarm
       } else {
         sP.alarm_day_set = false;
       }
+      break;
     case 5:                           // autoBrightness on/off
       if ((in % 1000) == 1) {
         sP.autoBrightness = true;
       } else if ((in % 1000) == 0) {
         sP.autoBrightness = false;
       }
+      break;
+    case 6:
+      sP.a_day[in % 1000] = 0;
+      break;
     case 10:  // 10xxx - red pin 10 to value xxx
       sP.r_in = in % 1000;
       sP.done = false; // continue reading \ read 2 more param.
@@ -201,14 +189,14 @@ void GetCommand(uint16_t in) {
       break;
     case 13:  // 13 = code for blue pin 9, coz 90255 does't get in to 2 bytes :(
       sP.b_in = in % 1000;
-      sP.done = true;  // allow to light ON RGBStrip
+      sP.done = true;  // allow to fire the RGBStrip
       break;
   }
 
   if ((in / 10000) == 4) {
-    sP.alarm_time_t = in % 10000;
-
-    Alarm_Days(ptr->alarm_day, ptr->alarm_time_t);  // set alarm #2 of 2
+    uint8_t d = ptr->alarm_day - 1;
+    sP.a_day[d] = 1;
+    sP.alarm_time[d] = in % 10000;
   }
 }
 
@@ -260,4 +248,10 @@ void PIR(uint8_t val) {
   } else if (ptr->pirStatus == 1) {
     sP.pirStatus = 0;
   }
+}
+
+void Buzzer() {
+  tone(ptr->pinBuzzer, 1000);   // Send 1KHz sound signal...
+  delay(100);
+  noTone(ptr->pinBuzzer);       // Stop sound...
 }

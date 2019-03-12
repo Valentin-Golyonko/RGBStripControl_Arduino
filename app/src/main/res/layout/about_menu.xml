@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/my"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:layout_gravity="center|top"
     android:gravity="center_horizontal"
-    android:orientation="vertical"
-    android:layout_gravity="center|top">
+    android:orientation="vertical">
 
     <TextView
         style="@style/my"
-        android:layout_height="wrap_content"
         android:layout_width="wrap_content"
-        android:textSize="16sp"
-        android:text="Made by:"/>
+        android:layout_height="wrap_content"
+        android:text="Made by:"
+        android:textColor="@color/textColorPrimary"
+        android:textSize="16sp" />
 
     <ImageView
         style="@style/my"
         android:layout_width="200dp"
         android:layout_height="50dp"
-        android:background="@drawable/be_quite"/>
+        android:background="@drawable/be_quite" />
 
     <TextView
         android:id="@+id/tv_menu_hello"
@@ -27,8 +28,10 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:autoLink="web"
-        android:textSize="16sp"
         android:gravity="center_horizontal"
-        android:text="@string/github_page"/>
+        android:lineSpacingMultiplier="1.5"
+        android:text="@string/github_page"
+        android:textColor="@color/textColorPrimary"
+        android:textSize="16sp" />
 
 </LinearLayout>

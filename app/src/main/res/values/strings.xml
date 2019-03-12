@@ -21,5 +21,18 @@
     <string name="bt_not_enabled_leaving">Bluetooth was not enabled. Leaving App.</string>
     <string name="btn_OFF">OFF</string>
     <string name="btn_ON">ON</string>
+    <string name="set_alarm">Set alarm:</string>
+    <string name="day_mon">M</string>
+    <string name="day_tue">T</string>
+    <string name="day_wed">W</string>
+    <string name="day_fri">F</string>
+    <string name="day_thu">T</string>
+    <string name="day_sat">S</string>
+    <string name="day_sun">S</string>
+    <string name="time_hint_h">06</string>
+    <string name="time_hint_m">30</string>
+    <string name="alarm_set">Set</string>
+    <string name="alarm_off">OFF</string>
+    <string name="auto_brightness">Auto Brightness:</string>
 
 </resources>
