@@ -19,7 +19,7 @@ public class SettingsActivity extends Activity {
 
     private EditText et_time_h, et_time_m;
     private ToggleButton tb_mon, tb_tue, tb_wed, tb_thu, tb_fri, tb_sat, tb_sun, tb_auto_b;
-    private TextView tv_auto_b;
+    //private TextView tv_auto_b;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,7 +36,7 @@ public class SettingsActivity extends Activity {
         tb_sat = findViewById(R.id.tb6);
         tb_sun = findViewById(R.id.tb7);
         tb_auto_b = findViewById(R.id.tb_auto_b);
-        tv_auto_b = findViewById(R.id.tv_auto_b);
+        //tv_auto_b = findViewById(R.id.tv_auto_b);
 
         getTodayDay();
 
@@ -76,21 +76,22 @@ public class SettingsActivity extends Activity {
 
         if (Objects.equals(InputRecognition.autoB, "1")) {
             tb_auto_b.setChecked(true);
-        } else {
+        } else if (Objects.equals(InputRecognition.autoB, "0")){
             tb_auto_b.setChecked(false);
         }
         tb_auto_b.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (tb_auto_b.isChecked()) {
-                    SendMassage.send(5, false, 0);
-                } else if (!tb_auto_b.isChecked()) {
-                    SendMassage.send(5, true, 0);
+                if (tb_auto_b.isChecked()) {                    // :(
+                    SendMassage.send(5, true, 0);   // autoBrightness ON
+                }
+                if (!tb_auto_b.isChecked()) {                   // :(
+                    SendMassage.send(5, false, 0);  // autoBrightness OFF
                 }
             }
         });
 
-        tv_auto_b.setText(InputRecognition.photoRes);
+        //tv_auto_b.setText(InputRecognition.photoRes);
     }
 
     @NonNull

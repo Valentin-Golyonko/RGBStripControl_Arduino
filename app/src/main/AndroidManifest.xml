@@ -29,8 +29,7 @@
             android:name="valentin8dev.by.RGBStripControlArduino.DeviceListActivity"
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/select_device"
-            android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar"
-            tools:targetApi="lollipop">
+            android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
             </intent-filter>
@@ -39,7 +38,7 @@
         <activity
             android:name="valentin8dev.by.RGBStripControlArduino.SettingsActivity"
             android:label="@string/menu_settings"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
             </intent-filter>
@@ -49,8 +48,7 @@
             android:name="valentin8dev.by.RGBStripControlArduino.AboutActivity"
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/menu_about"
-            android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar"
-            tools:targetApi="lollipop">
+            android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
             </intent-filter>
