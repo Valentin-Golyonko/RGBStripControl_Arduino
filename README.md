@@ -11,8 +11,10 @@ Project for managing rgb backlighting with arduino and android applications.
 <p>Arduino firmware file:
 <a href="https://github.com/Valentin-Golyonko/RGBStripControl_Arduino/blob/master/RGBStripControl_Arduino/RGBStripControl_Arduino.ino">RGBStripControl_Arduino.ino</a></p>
 
-<p>Board view:</p>
-<img src="https://github.com/Valentin-Golyonko/RGBStripControl_Arduino/blob/master/RGBStripControl_Arduino/board_view.png" alt="board view">
+# Board view (v.2):
+<p><img src="https://github.com/Valentin-Golyonko/RGBStripControl_Arduino/blob/master/RGBStripControl_Arduino/board_view_1(v.2).jpg" alt="board view"></p>
+<p><img src="https://github.com/Valentin-Golyonko/RGBStripControl_Arduino/blob/master/RGBStripControl_Arduino/board_view_2(v.2).jpg" alt="board view"></p>
 
-<p>Android app:</p>
+
+# Android app:
 <img src="https://github.com/Valentin-Golyonko/RGBStripControl_Arduino/blob/master/RGBStripControl_Arduino/android_app_view.png" alt="Android app">
